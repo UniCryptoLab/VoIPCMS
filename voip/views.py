@@ -33,16 +33,24 @@ def handle_payment_notify(request):
                 check_ipn_response = client.check_ipn(notify)
                 check_ipn_response.code ='OK'
                 if check_ipn_response.code == 'OK':
-                    # ipn is valid, we can handle status
-                    logger.info('invoice:%s event:%s status:%s error_status:%s' % (notify['invoice_id'], notify['event'], notify['status'], notify['error_status']))
-                    if notify['status'] == 'Confirmed':
-                        # payment is confirmed, we can process recharge
-                        recharge = Recharge.objects.get_recharge_by_invoice_id(notify['invoice_id'])
-                        if recharge is not None and not recharge.is_gateway_confirmed:
-                            recharge.is_gateway_confirmed = True
-                            recharge.gateway_confirmed_time = timezone.now()
-                            recharge.save()
-                            logger.info('recharge:%s invoice_id:%s confirmed' % (recharge.pk, recharge.invoice_id))
+                    recharge = Recharge.objects.get_recharge_by_invoice_id(notify['invoice_id'])
+                    if recharge is not None:
+                        # ipn is valid, we can handle status
+                        logger.info('recharge:%s invoice:%s event:%s status:%s error_status:%s' % (recharge.pk, notify['invoice_id'], notify['event'], notify['status'], notify['error_status']))
+                        if notify['status'] == 'Confirmed':
+                            # payment is confirmed, we can process recharge
+                            if not recharge.is_gateway_confirmed:
+                                recharge.is_gateway_confirmed = True
+                                recharge.gateway_confirmed_time = timezone.now()
+                                recharge.save()
+                                logger.info('recharge:%s invoice_id:%s confirmed' % (recharge.pk, recharge.invoice_id))
+                        elif notify['status'] == 'Expired':
+                            # payment is expired, we expire recharge
+                            if not recharge.is_expired:
+                                recharge.is_expired = True
+                                recharge.expired_time = timezone.now()
+                                recharge.save()
+                                logger.info('recharge:%s invoice_id:%s expired' % (recharge.pk, recharge.invoice_id))
                 else:
                     logger.error('invoice:%s is not valid' % notify['invoice_id'])
             except ApiException as e:

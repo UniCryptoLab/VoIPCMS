@@ -25,7 +25,7 @@ class RechargeManager(models.Manager):
         request.network = 'NETWORK_TRX'
         request.notify_url = 'https://%s/voip/payment/notify' % settings.CMS_HOST
         request.redirect_url = 'https://%s/recharge' % settings.CMS_HOST
-        request.order_id = recharge.pk
+        request.order_id = '#:%s' % recharge.pk
         request.title = 'Recharge Account'
         request.description = 'Recharge Account: %s %s$' % (customer.name, amount)
         create_invoice_response = client.create_invoice(request)
