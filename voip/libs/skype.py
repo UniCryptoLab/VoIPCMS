@@ -50,8 +50,10 @@ class SkypeEvent(SkypeEventLoop):
 
                         if cmd_upper in ['HELP', 'H']:
                             self.on_group_help(skype_id, chat_id, args)
-                        elif cmd_upper in ['CUSTOMER', 'C']:
+                        elif cmd_upper in ['CUSTOMER']:
                             self.on_init_customer(skype_id, chat_id, args)
+                        elif cmd_upper in ['NAME', 'N']:
+                            self.on_name(skype_id, chat_id, args)
                         elif cmd_upper in ['BALANCE', 'B']:
                             self.on_balance(skype_id, chat_id)
                         elif cmd_upper in ['IP', 'I']:
@@ -134,6 +136,14 @@ class SkypeEvent(SkypeEventLoop):
             staff.switch.destory_customer(args[1])
             Customer.objects.destory_customer(args[1])
             self.bot.send_group_message(group_id, 'Please contract with NOC to create customer data manually')
+
+    def on_name(self, skype_id, group_id, args):
+        customer = Customer.objects.get_customer_by_skype_group_id(group_id)
+        if customer is None:
+            self.bot.send_group_message(group_id,
+                                        'Hi team, please create customer account first.')
+            return
+        self.bot.send_group_message(group_id, 'Hi, this is service group for :%s' % customer.name)
 
     def on_balance(self, skype_id, group_id):
         customer = Customer.objects.get_customer_by_skype_group_id(group_id)
