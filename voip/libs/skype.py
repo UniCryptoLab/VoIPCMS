@@ -85,7 +85,8 @@ class SkypeEvent(SkypeEventLoop):
 
 
     def on_group_help(self, skype_id, group_id, args):
-        self.bot.send_group_message(group_id, 'Hi team, our customer service support command: balance[b], pay[p], ip[i], capacity[c], route[r]')
+        self.bot.send_group_message(group_id, 'Hi team, i am customer service bot, you can type @ me + command to get support.')
+        self.bot.send_group_message(group_id, 'Command: balance, pay, ip, capacity, route. (b, p, i, c, r can be recognized too)')
 
     def on_init_customer(self, skype_id, group_id, args):
         """
@@ -153,7 +154,7 @@ class SkypeEvent(SkypeEventLoop):
             return
         data = customer.switch.get_balance(customer.name)
         if data is not None:
-            self.bot.send_group_message(group_id, 'Hi, balance:%s od:%s' % (round(data['balance'], 2), round(data['overdraft'], 2)))
+            self.bot.send_group_message(group_id, 'Hi, balance: %s od: %s' % (round(data['balance'], 2), round(data['overdraft'], 2)))
         else:
             self.bot.send_group_message(group_id, 'Hi, please contract with NOC to check balance')
 
