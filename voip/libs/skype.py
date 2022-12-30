@@ -260,7 +260,7 @@ class SkypeEvent(SkypeEventLoop):
         try:
             result = Recharge.objects.add_fund(customer, args[1])
             if result.invoice_id != '':
-                self.bot.send_group_message(group_id, 'Hi, recharge: #%s generated, please make payment via this url: %s' % (result.pk, result.invoice_url))
+                self.bot.send_group_message(group_id, 'Hi, recharge #%s generated, please make payment via this url: %s' % (result.pk, result.invoice_url))
                 if result.has_pay_info():
                     self.bot.send_group_message(group_id, 'or you can transfer %s %s to address below via %s in 20 minutes (otherwiise generate new one).' % (result.amount, result.pay_currency, result.get_network_display_name()))
                     self.bot.send_group_message(group_id, result.pay_address)
