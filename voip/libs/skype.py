@@ -25,9 +25,9 @@ class SkypeBot(object):
 class SkypeEvent(SkypeEventLoop):
 
     def __init__(self, username, password):
+        logger.info('SkypeEvent inited for user:%s' % username)
         super(SkypeEvent, self).__init__(username, password)
         self.bot = SkypeBot(username, password)
-
 
     def onEvent(self, event):
         if isinstance(event, SkypeNewMessageEvent) \
