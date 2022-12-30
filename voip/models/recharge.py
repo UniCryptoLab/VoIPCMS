@@ -36,6 +36,7 @@ class RechargeManager(models.Manager):
             recharge.invoice_url = create_invoice_response.data.invoice_url
             recharge.pay_network = create_invoice_response.data.network
             recharge.pay_address = create_invoice_response.data.address
+            recharge.pay_currency = create_invoice_response.data.pay_currency
             recharge.save()
         else:
             recharge.invoice_create_error = create_invoice_response.msg
@@ -64,7 +65,8 @@ class Recharge(models.Model):
     invoice_id = models.CharField('InvoiceId', max_length=50, default='', blank=True)
     invoice_url = models.CharField('InvoiceUrl', max_length=50, default='', blank=True)
     pay_network = models.CharField('Network', max_length=128, default='', blank=True)
-    pay_address = models.CharField('InvoiceId', max_length=128, default='', blank=True)
+    pay_address = models.CharField('Address', max_length=128, default='', blank=True)
+    pay_currency = models.CharField('Pay Currency', max_length=50, default='', blank=True)
 
     is_gateway_confirmed = models.BooleanField('GatewayConfirm', default=False)
     gateway_confirmed_time = models.DateTimeField(default=None, null=True, blank=True)

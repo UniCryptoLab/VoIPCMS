@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 from ..models import Staff, Customer, Recharge
 
+
 class SkypeBot(object):
     def __init__(self, username, password):
         self.sk = Skype(username, password)
