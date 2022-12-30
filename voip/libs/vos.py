@@ -31,7 +31,7 @@ class VOSAPI(object):
 
     def get_customer(self, name):
         url = '%s/external/server/GetCustomer' % self.base_url
-        resp = requests.post(url=url, json={'accounts': [name]})
+        resp = requests.post(url=url, verify=False, json={'accounts': [name]})
         if resp.status_code == 200:
             data = resp.json()
             logger.debug('result:%s' % data)
@@ -42,7 +42,7 @@ class VOSAPI(object):
 
     def delete_customer(self, name):
         url = '%s/external/server/DeleteCustomer' % self.base_url
-        resp = requests.post(url=url, json={'account': name})
+        resp = requests.post(url=url, verify=False, json={'account': name})
         if resp.status_code == 200:
             data = resp.json()
             logger.debug('result:%s' % data)
@@ -56,7 +56,7 @@ class VOSAPI(object):
         if rate != '':
             if self.get_rate_group(rate) is not None:
                 req = {'account': name, 'feeRateGroup': name}
-        resp = requests.post(url=url, json=req)
+        resp = requests.post(url=url, verify=False, json=req)
         if resp.status_code == 200:
             data = resp.json()
             logger.debug('result:%s' % data)
@@ -68,7 +68,7 @@ class VOSAPI(object):
 
     def get_rate_group(self, name):
         url = '%s/external/server/GetFeeRateGroup' % self.base_url
-        resp = requests.post(url=url, json={'names': [name]})
+        resp = requests.post(url=url, verify=False, json={'names': [name]})
         if resp.status_code == 200:
             data = resp.json()
             logger.debug('result:%s' % data)
@@ -79,7 +79,7 @@ class VOSAPI(object):
 
     def delete_rate_group(self, name):
         url = '%s/external/server/DeleteFeeRateGroup' % self.base_url
-        resp = requests.post(url=url, json={'name': name})
+        resp = requests.post(url=url, verify=False, json={'name': name})
         if resp.status_code == 200:
             data = resp.json()
             logger.debug('result:%s' % data)
@@ -93,7 +93,7 @@ class VOSAPI(object):
 
     def create_rate_group(self, name):
         url = '%s/external/server/CreateFeeRateGroup' % self.base_url
-        resp = requests.post(url=url, json={'name': name})
+        resp = requests.post(url=url, verify=False, json={'name': name})
         if resp.status_code == 200:
             data = resp.json()
             logger.debug('result:%s' % data)
@@ -105,7 +105,7 @@ class VOSAPI(object):
 
     def get_inbound_gateway(self, name):
         url = '%s/external/server/GetGatewayMapping' % self.base_url
-        resp = requests.post(url=url, json={'names': [name]})
+        resp = requests.post(url=url, verify=False, json={'names': [name]})
         if resp.status_code == 200:
             data = resp.json()
             logger.debug('result:%s' % data)
@@ -116,7 +116,7 @@ class VOSAPI(object):
 
     def create_inbound_gateway(self, name):
         url = '%s/external/server/CreateGatewayMapping' % self.base_url
-        resp = requests.post(url=url, json={'name': name, 'callLevel':5, 'account': name, 'registerType':0})
+        resp = requests.post(url=url, verify=False, json={'name': name, 'callLevel':5, 'account': name, 'registerType':0})
         if resp.status_code == 200:
             data = resp.json()
             logger.debug('result:%s' % data)
@@ -132,7 +132,7 @@ class VOSAPI(object):
         #print(gw)
         url = '%s/external/server/ModifyGatewayMapping' % self.base_url
         gw['remoteIps']=ips
-        resp = requests.post(url=url, json=gw)
+        resp = requests.post(url=url, verify=False, json=gw)
         if resp.status_code == 200:
             data = resp.json()
             logger.debug('result:%s' % data)
@@ -148,7 +148,7 @@ class VOSAPI(object):
         # print(gw)
         url = '%s/external/server/ModifyGatewayMapping' % self.base_url
         gw['routingGatewayGroups'] = route_groups
-        resp = requests.post(url=url, json=gw)
+        resp = requests.post(url=url, verify=False, json=gw)
         if resp.status_code == 200:
             data = resp.json()
             logger.debug('result:%s' % data)
@@ -164,7 +164,7 @@ class VOSAPI(object):
         # print(gw)
         url = '%s/external/server/ModifyGatewayMapping' % self.base_url
         gw['capacity'] = ports
-        resp = requests.post(url=url, json=gw)
+        resp = requests.post(url=url, verify=False, json=gw)
         if resp.status_code == 200:
             data = resp.json()
             logger.debug('result:%s' % data)
@@ -180,7 +180,7 @@ class VOSAPI(object):
         # print(gw)
         url = '%s/external/server/ModifyGatewayMapping' % self.base_url
         gw['routingGatewayGroups'] = route_groups
-        resp = requests.post(url=url, json=gw)
+        resp = requests.post(url=url, verify=False, json=gw)
         if resp.status_code == 200:
             data = resp.json()
             logger.debug('result:%s' % data)
@@ -192,7 +192,7 @@ class VOSAPI(object):
 
     def delete_inbound_gateway(self, name):
         url = '%s/external/server/DeleteGatewayMapping' % self.base_url
-        resp = requests.post(url=url, json={'name': name})
+        resp = requests.post(url=url, verify=False, json={'name': name})
         if resp.status_code == 200:
             data = resp.json()
             logger.debug('result:%s' % data)
@@ -209,7 +209,7 @@ class VOSAPI(object):
         :return:
         """
         url = '%s/external/server/Pay' % self.base_url
-        resp = requests.post(url=url, json={'ownerName': name, 'ownerType':2, 'money': amount, 'memo': ref})
+        resp = requests.post(url=url, verify=False, json={'ownerName': name, 'ownerType':2, 'money': amount, 'memo': ref})
         if resp.status_code == 200:
             data = resp.json()
             logger.debug('result:%s' % data)
@@ -241,7 +241,7 @@ class VOSAPI(object):
 
 
 if __name__ == '__main__':
-    api = VOSAPI()
+    api = VOSAPI('https://127.0.0.1:7133')
 
     #cust = api.get_customer('vivan')
     #print(cust)
@@ -276,7 +276,7 @@ if __name__ == '__main__':
     #print(ret)
     #ret = api.update_ips('test001', '33.33.44.44')
     #ret = api.update_ports('test001', 100)
-    ret = api.update_route_group('test001', '86cc')
+    ret = api.get_balance('test')
     print(ret)
 
 
