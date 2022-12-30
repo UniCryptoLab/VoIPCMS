@@ -6,6 +6,7 @@ from django.db import models
 from django.utils import timezone
 from django.conf import settings
 
+from common.string_helper import is_not_empty_null
 from .switch import Switch
 from unipayment import UniPaymentClient, CreateInvoiceRequest
 
@@ -33,6 +34,8 @@ class RechargeManager(models.Manager):
         if create_invoice_response.code == 'OK':
             recharge.invoice_id = create_invoice_response.data.invoice_id
             recharge.invoice_url = create_invoice_response.data.invoice_url
+            recharge.pay_network = create_invoice_response.data.network
+            recharge.pay_address = create_invoice_response.data.address
             recharge.save()
         else:
             recharge.invoice_create_error = create_invoice_response.msg
@@ -60,6 +63,8 @@ class Recharge(models.Model):
 
     invoice_id = models.CharField('InvoiceId', max_length=50, default='', blank=True)
     invoice_url = models.CharField('InvoiceUrl', max_length=50, default='', blank=True)
+    pay_network = models.CharField('Network', max_length=128, default='', blank=True)
+    pay_address = models.CharField('InvoiceId', max_length=128, default='', blank=True)
 
     is_gateway_confirmed = models.BooleanField('GatewayConfirm', default=False)
     gateway_confirmed_time = models.DateTimeField(default=None, null=True, blank=True)
@@ -82,6 +87,23 @@ class Recharge(models.Model):
 
     class Meta:
         ordering = ['pk', ]
+
+    def get_pay_info(self):
+        if is_not_empty_null(self.pay_network) and is_not_empty_null(self.pay_address):
+            return 'address: %s network: %s' % (self.pay_address, self.get_network_display_name())
+        else:
+            return None
+
+    def get_network_display_name(self):
+        if self.pay_network == 'NETWORK_TRX':
+            return 'TRC20'
+        elif self.pay_network == 'NETWORK_BTC':
+            return 'BTC'
+        elif self.pay_network == 'NETWORK_ETH':
+            return 'ERC20'
+        elif self.pay_network == 'NETWORK_BSC':
+            return 'BEP20'
+        return self.pay_network
 
 
     def __str__(self):

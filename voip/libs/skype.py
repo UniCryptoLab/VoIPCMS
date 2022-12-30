@@ -260,6 +260,9 @@ class SkypeEvent(SkypeEventLoop):
             result = Recharge.objects.add_fund(customer, args[1])
             if result.invoice_id != '':
                 self.bot.send_group_message(group_id, 'Hi, please make payment via this url: %s' % result.invoice_url)
+                pay_info =  result.get_pay_info()
+                if pay_info is not None:
+                    self.bot.send_group_message(group_id, 'you can also transfer: %s to %s too.' % (result.amount, pay_info))
             else:
                 self.bot.send_group_message(group_id, 'Hi, please contract with support to make payment')
         except Exception as e:
