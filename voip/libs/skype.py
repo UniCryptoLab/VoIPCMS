@@ -32,49 +32,54 @@ class SkypeEvent(SkypeEventLoop):
     def onEvent(self, event):
         if isinstance(event, SkypeNewMessageEvent) \
           and not event.msg.userId == self.userId:
-            print(event.msg)
-            skype_id = event.msg.userId
-            chat_id = event.msg.chatId
-            chat_content = event.msg.content
-            is_at_cs = chat_content.startswith('<at id="8:live:.cid.422fc742faec9b8e">CS_3Trunks</at>')
-            is_group = chat_id.startswith('19:')
 
-            if is_group:
-                if is_at_cs:
+            try:
+                print(event.msg)
+                skype_id = event.msg.userId
+                chat_id = event.msg.chatId
+                chat_content = event.msg.content
+                is_at_cs = chat_content.startswith('<at id="8:live:.cid.422fc742faec9b8e">CS_3Trunks</at>')
+                is_group = chat_id.startswith('19:')
+
+                if is_group:
+                    if is_at_cs:
+                        args = chat_content[54:].split(' ')
+                        cmd = args[0]
+                        logger.info('group cmd:%s cmd skype_id:%s chat_id:%s' % (cmd, skype_id, chat_id))
+                        cmd_upper = cmd.upper()
+
+                        if cmd_upper in ['HELP', 'H']:
+                            self.on_group_help(skype_id, chat_id, args)
+                        elif cmd_upper in ['CUSTOMER', 'C']:
+                            self.on_init_customer(skype_id, chat_id, args)
+                        elif cmd_upper in ['BALANCE', 'B']:
+                            self.on_balance(skype_id, chat_id)
+                        elif cmd_upper in ['IP', 'I']:
+                            self.on_ip(skype_id, chat_id, args)
+                        elif cmd_upper in ['CAPACITY', 'C']:
+                            self.on_capacity(skype_id, chat_id, args)
+                        elif cmd_upper in ['ROUTE', 'R']:
+                            self.on_route(skype_id, chat_id, args)
+                        elif cmd_upper == 'DESTORY':
+                            self.on_destory_customer(skype_id, chat_id, args)
+                        elif cmd_upper in ['PAY', 'P']:
+                            self.on_pay(skype_id, chat_id, args)
+                        else:
+                            logger.info("cmd:%s do not supported" % cmd.upper())
+                            self.on_group_help(skype_id, chat_id, args)
+                else:
+                    staff = Staff.objects.get_staff_by_skype_id(skype_id)
+                    if staff is None or not staff.is_admin:
+                        logger.info('only staff admin can create customer')
+                        self.bot.send_group_message(skype_id, 'please contract with NOC to query data')
+                        return
                     args = chat_content[54:].split(' ')
                     cmd = args[0]
-                    logger.info('group cmd:%s cmd skype_id:%s chat_id:%s' % (cmd, skype_id, chat_id))
-                    cmd_upper = cmd.upper()
+                    if cmd.upper() == "REPORT":
+                        self.on_report(skype_id, chat_id, args)
+            except Exception as e:
+                logger.error('process message error:%s' % e)
 
-                    if cmd_upper in ['HELP', 'H']:
-                        self.on_group_help(skype_id, chat_id, args)
-                    elif cmd_upper in ['CUSTOMER', 'C']:
-                        self.on_init_customer(skype_id, chat_id, args)
-                    elif cmd_upper in ['BALANCE', 'B']:
-                        self.on_balance(skype_id, chat_id)
-                    elif cmd_upper in ['IP', 'I']:
-                        self.on_ip(skype_id, chat_id, args)
-                    elif cmd_upper in ['CAPACITY', 'C']:
-                        self.on_capacity(skype_id, chat_id, args)
-                    elif cmd_upper in ['ROUTE', 'R']:
-                        self.on_route(skype_id, chat_id, args)
-                    elif cmd_upper == 'DESTORY':
-                        self.on_destory_customer(skype_id, chat_id, args)
-                    elif cmd_upper in ['PAY', 'P']:
-                        self.on_pay(skype_id, chat_id, args)
-                    else:
-                        logger.info("cmd:%s do not supported" % cmd.upper())
-                        self.on_group_help(skype_id, chat_id, args)
-            else:
-                staff = Staff.objects.get_staff_by_skype_id(skype_id)
-                if staff is None or not staff.is_admin:
-                    logger.info('only staff admin can create customer')
-                    self.bot.send_group_message(skype_id, 'please contract with NOC to query data')
-                    return
-                args = chat_content[54:].split(' ')
-                cmd = args[0]
-                if cmd.upper() == "REPORT":
-                    self.on_report(skype_id, chat_id, args)
 
 
     def on_group_help(self, skype_id, group_id, args):
