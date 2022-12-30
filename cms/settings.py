@@ -19,7 +19,7 @@ load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -96,10 +96,11 @@ WSGI_APPLICATION = 'cms.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': PROJECT_ROOT / 'cms.db.sqlite3',
     }
 }
 
@@ -141,9 +142,10 @@ ENVIRONMENT_FLOAT = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'data', 'static')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -221,7 +223,7 @@ LOGGING = {
         'default': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join('logs', 'debug.log'),
+            'filename': os.path.join('../logs', 'debug.log'),
             'maxBytes': 1024 * 1024 * 100,  # 5 MB
             'backupCount': 5,
             'formatter': 'standard',
@@ -229,7 +231,7 @@ LOGGING = {
         'info': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join('logs', 'info.log'),
+            'filename': os.path.join('../logs', 'info.log'),
             'maxBytes': 1024 * 1024 * 100,  # 5 MB
             'backupCount': 5,
             'formatter': 'standard',
