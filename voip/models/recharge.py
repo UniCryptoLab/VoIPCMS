@@ -76,7 +76,7 @@ class Recharge(models.Model):
 
     is_switch_credited = models.BooleanField('SwitchCredit', default=False)
     switch_credited_time = models.DateTimeField(default=None, null=True, blank=True)
-    is_switch_credit_success = models.BooleanField('SwitchCredit', default=False)
+    is_switch_credit_success = models.BooleanField('CreditSuccess', default=False)
     credit_mark = models.CharField('CreditMark', max_length=128, default='', blank=True)
 
 
