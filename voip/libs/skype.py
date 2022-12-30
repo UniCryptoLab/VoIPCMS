@@ -262,7 +262,7 @@ class SkypeEvent(SkypeEventLoop):
             if result.invoice_id != '':
                 self.bot.send_group_message(group_id, 'Hi, please make payment via this url: %s' % result.invoice_url)
                 if result.has_pay_info():
-                    self.bot.send_group_message(group_id, 'you can also transfer: %s %s to %s via %s.' % (result.amount, result.pay_currency, result.pay_address, result.get_network_display_name()))
+                    self.bot.send_group_message(group_id, 'or you can also transfer: %s %s to %s via %s.' % (result.amount, result.pay_currency, result.pay_address, result.get_network_display_name()))
             else:
                 self.bot.send_group_message(group_id, 'Hi, please contract with support to make payment')
         except Exception as e:
