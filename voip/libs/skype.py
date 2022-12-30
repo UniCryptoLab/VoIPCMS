@@ -159,7 +159,7 @@ class SkypeEvent(SkypeEventLoop):
         else:
             staff = Staff.objects.get_staff_by_skype_id(skype_id)
             if staff is None or not staff.is_admin:
-                logger.info('only staff admin can create customer')
+                logger.info('only staff admin can set inbound ip')
                 self.bot.send_group_message(group_id, 'Hi, please contract with NOC to update ip')
                 return
             else:
@@ -186,7 +186,7 @@ class SkypeEvent(SkypeEventLoop):
         else:
             staff = Staff.objects.get_staff_by_skype_id(skype_id)
             if staff is None or not staff.is_admin:
-                logger.info('only staff admin can create customer')
+                logger.info('only staff admin can set inbound capacity')
                 self.bot.send_group_message(group_id, 'please contract with NOC to update capacity')
                 return
             else:
@@ -213,7 +213,7 @@ class SkypeEvent(SkypeEventLoop):
         else:
             staff = Staff.objects.get_staff_by_skype_id(skype_id)
             if staff is None or not staff.is_admin:
-                logger.info('only staff admin can create customer')
+                logger.info('only staff admin can set routegroup')
                 self.bot.send_group_message(group_id, 'please contract with NOC to update route group')
                 return
             else:
@@ -260,7 +260,7 @@ class SkypeEvent(SkypeEventLoop):
 
         staff = Staff.objects.get_staff_by_skype_id(skype_id)
         if staff is None or not staff.is_admin:
-            logger.info('only staff admin can create customer')
+            logger.info('only staff admin can destory customer')
             self.bot.send_group_message(group_id, 'Hi, please contract with NOC to close customer account')
             return
 
