@@ -34,7 +34,7 @@ class SkypeEvent(SkypeEventLoop):
           and not event.msg.userId == self.userId:
 
             try:
-                print(event.msg)
+                #print(event.msg)
                 skype_id = event.msg.userId
                 chat_id = event.msg.chatId
                 chat_content = event.msg.content
