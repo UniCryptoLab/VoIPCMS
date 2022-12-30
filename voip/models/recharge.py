@@ -90,11 +90,10 @@ class Recharge(models.Model):
     class Meta:
         ordering = ['pk', ]
 
-    def get_pay_info(self):
-        if is_not_empty_null(self.pay_network) and is_not_empty_null(self.pay_address):
-            return 'address: %s network: %s' % (self.pay_address, self.get_network_display_name())
-        else:
-            return None
+    def has_pay_info(self):
+        if is_not_empty_null(self.pay_network) and is_not_empty_null(self.pay_address) and is_not_empty_null(self.pay_currency):
+            return True
+        return False
 
     def get_network_display_name(self):
         if self.pay_network == 'NETWORK_TRX':
