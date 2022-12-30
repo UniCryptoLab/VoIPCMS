@@ -26,8 +26,8 @@ class RechargeManager(models.Manager):
         request.notify_url = 'https://%s/voip/payment/notify' % settings.CMS_HOST
         request.redirect_url = 'https://%s/recharge' % settings.CMS_HOST
         request.order_id = recharge.pk
-        request.title = 'Top up'
-        request.description = 'Top up %s to %s' % (amount, customer.name)
+        request.title = 'Recharge Account'
+        request.description = 'Recharge Account: %s %s$' % (customer.name, amount)
         create_invoice_response = client.create_invoice(request)
 
         if create_invoice_response.code == 'OK':
