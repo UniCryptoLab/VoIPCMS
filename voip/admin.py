@@ -21,7 +21,7 @@ class CustomerAdmin(admin.ModelAdmin):
     list_display = ('name', 'skype_group_id')
 
 class RechargeAdmin(admin.ModelAdmin):
-    list_display = ('customer', 'amount', 'invoice_id', 'invoice_url', 'is_gateway_confirmed', 'is_switch_credited', 'created_time')
+    list_display = ('customer', 'amount', 'invoice_id', 'invoice_url', 'is_gateway_confirmed', 'is_expired', 'is_switch_credited', 'is_switch_credit_success', 'created_time')
     list_filter = ('customer',)
 
 admin.site.register(Switch, SwitchAdmin)
