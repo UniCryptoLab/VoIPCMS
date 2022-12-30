@@ -66,4 +66,15 @@ def recharge_handler():
             logger.error('send notification error')
 
 
+    # handle expired recharge to notify
+    for item in Recharge.objects.get_expired_recharge_to_notify():
+        if item.customer is not None:
+            item.is_expired_notified = True
+            item.save()
+            msg = 'Hi, recharge: #%s is expired, please generate new one.' % item.pk
+            skype_bot.send_group_message(item.customer.skype_group_id, msg)
+
+
+
+
 

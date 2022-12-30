@@ -50,6 +50,9 @@ class RechargeManager(models.Manager):
         except Recharge.DoesNotExist as e:
             return None
 
+    def get_expired_recharge_to_notify(self):
+        return self.filter(is_expired=True).filter(is_expired_notified=False).all()
+
     def get_recharge_to_credit(self):
         return self.filter(is_gateway_confirmed=True).filter(is_switch_credited=False).all()
 
@@ -72,6 +75,7 @@ class Recharge(models.Model):
     gateway_confirmed_time = models.DateTimeField(default=None, null=True, blank=True)
 
     is_expired = models.BooleanField('IsExpired', default=False)
+    is_expired_notified = models.BooleanField('ExpiredNotified', default=False)
     expired_time = models.DateTimeField(default=None, null=True, blank=True)
 
     is_switch_credited = models.BooleanField('SwitchCredit', default=False)
