@@ -25,7 +25,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*fk5zl7lz#h%x92-1nqn^5ofr(6=xl4)btike4%*tq)o$_2c8e'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'ABC123456')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(strtobool(os.getenv('DJANGO_DEBUG', 'True')))
