@@ -13,7 +13,7 @@ from common import Response,Success,Error, json_response, _json_content
 from common import get_client_ip
 
 from unipayment import UniPaymentClient, ApiException
-from .models import Recharge
+from .models import Recharge, FeatureNumber
 from . import settings
 
 import logging, traceback
@@ -59,6 +59,26 @@ def handle_payment_notify(request):
     except Exception as e:
         logger.error('process unipayment notify error: %s' % e)
         return HttpResponse('FAIL')
+
+
+
+def get_call_manager_config(request):
+    try:
+        if request.method == "POST":
+            raise Exception("POST not support")
+        else:
+            client_ip = get_client_ip(request)
+            country = request.GET.get("country", None)
+            if country is None:
+                raise Exception("please provider country")
+            feature_numbers = FeatureNumber.objects.filter(country=country).all()
+            data = {
+                'feature_numbers': [item.to_dict() for item in feature_numbers]
+            }
+            return json_response(Success(data))
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        return json_response(Error(str(e)))
 
 
 def api_api_check(request):

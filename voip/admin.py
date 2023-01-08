@@ -9,7 +9,7 @@ import logging, traceback, json
 logger = logging.getLogger(__name__)
 
 
-from .models import Customer, Switch, Staff, Recharge
+from .models import Customer, Switch, Staff, Recharge, FeatureNumber
 
 class SwitchAdmin(admin.ModelAdmin):
     list_display = ('name', 'ip_address')
@@ -24,9 +24,15 @@ class RechargeAdmin(admin.ModelAdmin):
     list_display = ('customer', 'amount', 'invoice_id', 'invoice_url', 'is_gateway_confirmed', 'is_expired', 'is_switch_credited', 'is_switch_credit_success', 'created_time')
     list_filter = ('customer',)
 
+class FeatureNumberAdmin(admin.ModelAdmin):
+    list_display = ('number', 'country', 'call_model')
+    list_filter = ('country', 'call_model')
+
 admin.site.register(Switch, SwitchAdmin)
 admin.site.register(Staff, StaffAdmin)
 admin.site.register(Customer, CustomerAdmin)
 admin.site.register(Recharge, RechargeAdmin)
+
+admin.site.register(FeatureNumber, FeatureNumberAdmin)
 
 
