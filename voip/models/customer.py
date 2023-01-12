@@ -33,7 +33,7 @@ class Customer(models.Model):
     Customer
     """
     name = models.CharField('Name', max_length=50, default='name')
-    skype_group_id = models.CharField('SkypeGroupId', max_length=200, default='')
+    skype_group_id = models.CharField('SkypeGroupId', max_length=200, default='', blank=True, null=True)
     creator = models.ForeignKey(Staff, verbose_name='Creator', related_name='customers',  on_delete=models.SET_NULL, null=True)
     staff = models.ForeignKey(Staff, verbose_name='Sales', related_name='sale_customers', on_delete=models.SET_NULL, null=True)
     switch = models.ForeignKey('Switch', verbose_name='Switch', on_delete=models.SET_NULL, null=True)
