@@ -18,7 +18,7 @@ class InboundGateway(models.Model):
     Feature Number
     """
     ip = models.CharField('IP', max_length=50, default='127.0.0.1')
-    customer = models.ForeignKey('Customer', verbose_name='inbound_gateways', on_delete=models.SET_NULL, null=True)
+    customer = models.ForeignKey('Customer', on_delete=models.SET_NULL, null=True)
     description = models.CharField('Description', max_length=1000, default='', blank=True)
 
     class Meta:

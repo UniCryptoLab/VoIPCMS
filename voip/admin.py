@@ -2,8 +2,11 @@
 
 # Register your models here.
 from django.forms import ModelForm
-from django.contrib import admin
-
+from django.urls import path
+from django.contrib import admin, messages
+from django.urls import reverse
+from django.http import HttpResponse, HttpResponseNotFound, Http404 ,HttpResponseRedirect, JsonResponse
+from django.utils.html import format_html
 
 import logging, traceback, json
 logger = logging.getLogger(__name__)
@@ -19,6 +22,46 @@ class StaffAdmin(admin.ModelAdmin):
 
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ('name', 'skype_group_id', 'switch', 'cfg_asr', 'cfg_enable_sky_net')
+
+    def customer_action(self, obj):
+        """
+
+        """
+        return format_html(
+            '<a href="{}" target="_blank">Inbound</a>&nbsp;'
+            '| <a href="{}" >Framework</a>&nbsp;',
+            reverse('admin:customer-sync-inbound', args=[obj.pk]),
+            reverse('admin:customer-demo', args=[obj.pk]),
+        )
+
+    customer_action.allow_tags = True
+    customer_action.short_description = "Action"
+
+    def get_urls(self):
+        # use get_urls for easy adding of views to the admin
+        urls = super(CustomerAdmin, self).get_urls()
+        my_urls = [
+            #path(
+            #    r'^(?P<customer_id>.+)/sync_inbound_gateway/$',
+            #    self.admin_site.admin_view(self.upload_permission),
+            #    name='deploy-upload-permission',
+            #),
+        ]
+
+        return my_urls + urls
+
+    def sync_inbound_gateway(self, request, customer_id):
+        previous_url = request.META.get('HTTP_REFERER')
+        customer = Customer.objects.get(id=customer_id)
+        if customer.switch is not None:
+            gws = customer.switch.get_inbound_gateway_info(customer.name)
+
+        #for ip in gws.split(','):
+
+
+        messages.info(request, "Send Permission Update Success")
+        return HttpResponseRedirect(previous_url)
+
 
 class RechargeAdmin(admin.ModelAdmin):
     list_display = ('customer', 'amount', 'invoice_id', 'invoice_url', 'is_gateway_confirmed', 'is_expired', 'is_switch_credited', 'is_switch_credit_success', 'created_time')
