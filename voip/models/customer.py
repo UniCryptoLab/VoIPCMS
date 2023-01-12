@@ -37,6 +37,8 @@ class Customer(models.Model):
     creator = models.ForeignKey(Staff, verbose_name='Creator', related_name='customers',  on_delete=models.SET_NULL, null=True)
     staff = models.ForeignKey(Staff, verbose_name='Sales', related_name='sale_customers', on_delete=models.SET_NULL, null=True)
     switch = models.ForeignKey('Switch', verbose_name='Switch', on_delete=models.SET_NULL, null=True)
+    cfg_asr = models.FloatField('ASR', default=0.18)
+    cfg_enable_sky_net = models.BooleanField(default=False, verbose_name='SkyNet'),
     description = models.CharField('Description', max_length=1000, default='', blank=True)
 
     objects = CustomerManager()

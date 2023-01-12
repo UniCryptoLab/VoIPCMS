@@ -28,20 +28,24 @@ class CallData(object):
 
 
 class CallManager(object):
-    def __init__(self):
+    def __init__(self, host):
         self._connected_map = {}
         self._config = None
-        self._api_host = ''
+        self._api_host = host
+        self.sync_config()
 
 
     def sync_config(self):
         try:
-            url = 'http://%s/voip/config/cm?number=%s' % (self._api_host, '86')
+            logger.info('sync config from: %s' % self._api_host)
+            url = 'https://%s/voip/config/cm?country=%s' % (self._api_host, '86')
+            #logger.info('url:%s' % url)
             resp = requests.get(url=url, verify=False)
             if resp.status_code == 200:
                 result = resp.json()
                 if result['code'] == 'OK':
                     self._config = result['data']
+            #logger.debug('config:%s' % self._config)
         except Exception as e:
             logger.error('sync config error:%s' % e)
 
@@ -60,7 +64,7 @@ class CallManager(object):
         return None
 
 
-    def on_connect(self, number):
+    def on_connect(self, src_ip, number, file):
         """
         update number latest connect time
         :param number:
@@ -75,8 +79,14 @@ class CallManager(object):
     def is_number_block(self, number):
         fn = self.get_feature_number(number)
         if fn is not None:
-            return fn.call_model == 'Block'
+            return fn['call_model'] == 'Block'
         return False
+
+    def get_feature_number_call_model(self, number):
+        fn = self.get_feature_number(number)
+        if fn is not None:
+            return fn['call_model']
+        return None
 
     def need_connect_via_trunk(self, number):
         """
@@ -93,11 +103,12 @@ class CallManager(object):
         # check feature number
         fn = self.get_feature_number(number)
         if fn is not None:
-            if fn.call_model == 'Direct':
+            call_model = fn['call_model']
+            if call_model == 'Direct':
                 return True
-            elif fn.call_model == 'Bypass':
+            elif call_model == 'Bypass':
                 return False
-            elif fn.call_model == 'Block':
+            elif call_model == 'Block':
                 return False
 
         #AUTO model
@@ -120,6 +131,20 @@ class CallManager(object):
             return True
 
         return False
+
+
+    def get_asr(self, src_ip):
+        if src_ip is None or src_ip == '':
+            return 0.18
+
+        if self._config is None:
+            return 0.18
+
+        if 'asr' in self._config:
+            if src_ip in self._config['asr']:
+                return self._config['asr'][src_ip]
+
+        return 0.18
 
     def get_call_data(self, number):
         if number in self._connected_map:

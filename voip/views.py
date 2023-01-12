@@ -13,7 +13,7 @@ from common import Response,Success,Error, json_response, _json_content
 from common import get_client_ip
 
 from unipayment import UniPaymentClient, ApiException
-from .models import Recharge, FeatureNumber
+from .models import Recharge, FeatureNumber, InboundGateway
 from . import settings
 
 import logging, traceback
@@ -72,8 +72,10 @@ def get_call_manager_config(request):
             if country is None:
                 raise Exception("please provider country")
             feature_numbers = FeatureNumber.objects.filter(country=country).all()
+            inbound_ips = InboundGateway.objects.all()
             data = {
-                'feature_numbers': [item.to_dict() for item in feature_numbers]
+                'feature_numbers': [item.to_dict() for item in feature_numbers],
+                'inbound_ips': [item.to_dict() for item in inbound_ips]
             }
             return json_response(Success(data))
     except Exception as e:
