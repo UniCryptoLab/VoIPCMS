@@ -31,7 +31,7 @@ class FeatureNumberManager(models.Manager):
             self.upload_number(country, number)
 
     def upload_number(self, country, number):
-        if not self.exists(number=number):
+        if self.filter(number=number).count() == 0:
             self.create(country=country, number=number)
 
 class FeatureNumber(models.Model):
