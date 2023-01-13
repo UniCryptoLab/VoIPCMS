@@ -83,6 +83,22 @@ def get_call_manager_config(request):
         return json_response(Error(str(e)))
 
 
+@csrf_exempt
+def upload_feature_numbers(request):
+    try:
+        if request.method == "GET":
+            raise Exception("GET not support")
+        else:
+            client_ip = get_client_ip(request)
+            data = json.loads(request.body)
+            
+            FeatureNumber.objects.upload_numbers(data['country'], data['numbers'])
+            return json_response(Success())
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        return json_response(Error(str(e)))
+
+
 def api_api_check(request):
     try:
         if request.method == "POST":

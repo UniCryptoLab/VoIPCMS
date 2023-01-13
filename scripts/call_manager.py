@@ -31,6 +31,8 @@ class CallManager(object):
     def __init__(self, host):
         self._connected_map = {}
         self._config = None
+        self._inbound_ips_map = {}
+        self._new_feature_numbers = []
         self._api_host = host
         self.sync_config()
 
@@ -45,9 +47,30 @@ class CallManager(object):
                 result = resp.json()
                 if result['code'] == 'OK':
                     self._config = result['data']
-            #logger.debug('config:%s' % self._config)
+
+                    self._inbound_ips_map.clear()
+                    if 'inbound_ips' in self._config:
+                        for item in self._config['inbound_ips']:
+                            self._inbound_ips_map[item['ip']] = item
+
+                            #logger.debug('config:%s' % self._config)
         except Exception as e:
             logger.error('sync config error:%s' % e)
+
+    def upload_feature_number(self, numbers):
+        try:
+            logger.info('upload feature number')
+            url = 'https://%s/voip/feature_number/upload' % self._api_host
+            resp = requests.post(url=url, verify=False, json={'country': 86, 'numbers': numbers})
+            if resp.status_code == 200:
+                result = resp.json()
+                if result['code'] == 'OK':
+                    logger.info('uplod feature number success')
+                else:
+                    logger.error('upload feature number error')
+        except Exception as e:
+            logger.error('upload feature number error:%s' % e)
+
 
     def _get_feature_number(self, dataset, number):
         for item in dataset:
@@ -76,21 +99,10 @@ class CallManager(object):
         data = self._connected_map[number]
         data.connect_time = time.time()
 
-    def is_number_block(self, number):
-        fn = self.get_feature_number(number)
-        if fn is not None:
-            return fn['call_model'] == 'Block'
-        return False
 
-    def get_feature_number_call_model(self, number):
-        fn = self.get_feature_number(number)
-        if fn is not None:
-            return fn['call_model']
-        return None
-
-    def need_connect_via_trunk(self, number):
+    def get_call_config(self, src_ip, number):
         """
-        check if number need connect through trunk
+        get call config data
         :param number:
         :return:
         """
@@ -99,52 +111,71 @@ class CallManager(object):
         data = self._connected_map[number]
         # count try cnt
         data.try_count = data.try_count + 1
-
-        # check feature number
-        fn = self.get_feature_number(number)
-        if fn is not None:
-            call_model = fn['call_model']
-            if call_model == 'Direct':
-                return True
-            elif call_model == 'Bypass':
-                return False
-            elif call_model == 'Block':
-                return False
-
-        #AUTO model
-        # try call a number 3 times, we make it connect
+        #catch mutli try count number
         if data.try_count >= 3:
-            connect = random.random()
-            if connect <= 0.7:
-                return True
+            if number not in self._new_feature_numbers:
+                self._new_feature_numbers.append(number)
 
-        if data.try_count >= 4:
-            connect = random.random()
-            if connect <= 0.9:
-                return True
+        config = {
+            'asr': 0.18,
+            'enable_sky_net': False,
+            'connect_via_trunk': False,
+            'is_blocked': False,
+            'is_connected': False,  # will delete future
+        }
 
-        if data.try_count >= 5:
-            return True
+        enable_sky_net = False
+        if src_ip is None or src_ip == '':#old version do not provider src ip
+            enable_sky_net = True
+            config['enable_sky_net'] = True
+        else:
+            if src_ip in self._inbound_ips_map:
+                item = self._inbound_ips_map[src_ip]
+                # if have src ip config, set asr and enable_sky_net
+                config['asr'] = item['asr']
+                config['enable_sky_net'] = item['enable_sky_net']
 
-        # if number is connected, we make it connect
-        if data.connect_time is not None:
-            return True
+                enable_sky_net = item['enable_sky_net']
 
-        return False
+        if enable_sky_net:
+            # check feature number
+            fn = self.get_feature_number(number)
+            #it is not feature number or feature is auto model then use default logic to handle config['connect_via_trunk']
+            if fn is None or fn['call_model'] == 'Auto':
+                # try call a number 3 times, we make it connect
+                if data.try_count >= 3:
+                    connect = random.random()
+                    if connect <= 0.7:
+                        config['connect_via_trunk'] = True
 
+                if data.try_count >= 4:
+                    connect = random.random()
+                    if connect <= 0.9:
+                        config['connect_via_trunk'] = True
 
-    def get_asr(self, src_ip):
-        if src_ip is None or src_ip == '':
-            return 0.18
+                if data.try_count >= 5:
+                    config['connect_via_trunk'] = True
 
-        if self._config is None:
-            return 0.18
+                # if number is connected, we make it connect
+                if data.connect_time is not None:
+                    config['connect_via_trunk'] = True
 
-        if 'asr' in self._config:
-            if src_ip in self._config['asr']:
-                return self._config['asr'][src_ip]
+            elif fn['call_model'] == 'Direct':
+                config['connect_via_trunk'] = True
 
-        return 0.18
+            elif fn['call_model'] == 'Block':
+                config['connect_via_trunk'] = False
+                config['is_blocked'] = True
+        else:
+            config['connect_via_trunk'] = False
+            if data.connect_time is not None: #if connected in 1 hour, do not connect the number anymore
+                config['asr'] = 0
+
+        # make old version work
+        config['is_connected'] = config['connect_via_trunk']
+
+        return config
+
 
     def get_call_data(self, number):
         if number in self._connected_map:
@@ -187,6 +218,14 @@ class CallManager(object):
 
                 for key in to_delete:
                     del self._connected_map[key]
+
+
+                if len(self._new_feature_numbers) > 0:
+                    logger.info('catch %s feature numbers' % len(self._new_feature_numbers))
+                    #upload number to server
+                    self.upload_feature_number(self._new_feature_numbers)
+                    self._new_feature_numbers.clear()
+
 
 
                 logger.info('cache size: %s deleted: %s multi_tried_calls: %s' % (len(self._connected_map), len(to_delete), multi_tried_calls))

@@ -26,6 +26,15 @@ COUNTRY = (
 )
 
 
+class FeatureNumberManager(models.Manager):
+    def upload_numbers(self, country, numbers):
+        for number in numbers:
+            self.upload_number(country, number)
+
+    def upload_number(self, country, number):
+        if not self.exists(country=country, number=number):
+            self.create(country=country, number=number)
+
 class FeatureNumber(models.Model):
     """
     Feature Number
@@ -34,6 +43,8 @@ class FeatureNumber(models.Model):
     call_model = models.CharField(max_length=10, choices=CALL_MODEL, default='Auto')
     country = models.CharField(max_length=10, choices=COUNTRY, default='86')
     description = models.CharField('Description', max_length=1000, default='', blank=True)
+
+    objects = FeatureNumberManager()
 
     class Meta:
         ordering = ['number', ]

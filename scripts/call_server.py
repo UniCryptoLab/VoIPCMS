@@ -64,20 +64,14 @@ def get_call_detail():
     number = request.args.get('number')
     src_ip = request.args.get('src_ip')
 
-    connect_via_trunk = manager.need_connect_via_trunk(number)
-    is_block = manager.is_number_block(number)
-    call_model = manager.get_feature_number_call_model(number)
-    asr = manager.get_asr(src_ip)
+    config = manager.get_call_config(src_ip, number)
 
     call_data = manager.get_call_data(number)
     try_count = call_data.try_count
     connect_time = call_data.connect_time
 
-    logger.info('query call details for number: %s  via src ip:%s try count: %s connect_time:%s connect_via_trunk: %s is_block: %s call model: %s' % (number,src_ip, try_count, connect_time, connect_via_trunk, is_block, call_model))
-    return jsonify({'code': 0, 'data': {'connect_via_trunk': connect_via_trunk,
-                                        'is_blocked': is_block,
-                                        'call_model': call_model,
-                                        'is_connected': connect_via_trunk}})
+    logger.info('query call config for number: %s  via src ip:%s try count: %s connect_time:%s config: %s ' % (number, src_ip, try_count, connect_time, config))
+    return jsonify({'code': 0, 'data': config})
 
 
 if __name__ == '__main__':
