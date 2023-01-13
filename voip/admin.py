@@ -68,7 +68,7 @@ class RechargeAdmin(admin.ModelAdmin):
     list_filter = ('customer',)
 
 class FeatureNumberAdmin(admin.ModelAdmin):
-    list_display = ('number', 'country', 'call_model')
+    list_display = ('number', 'country', 'call_model', 'created_time')
     list_filter = ('country', 'call_model')
 
 class InboundGatewayAdmin(admin.ModelAdmin):

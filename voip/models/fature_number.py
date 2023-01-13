@@ -41,12 +41,13 @@ class FeatureNumber(models.Model):
     number = models.CharField('Number', max_length=50, default='')
     call_model = models.CharField(max_length=10, choices=CALL_MODEL, default='Auto')
     country = models.CharField(max_length=10, choices=COUNTRY, default='86')
+    created_time = models.DateTimeField(default=timezone.now)
     description = models.CharField('Description', max_length=1000, default='', blank=True)
 
     objects = FeatureNumberManager()
 
     class Meta:
-        ordering = ['number', ]
+        ordering = ['created_time', ]
 
     def __str__(self):
         return self.number
