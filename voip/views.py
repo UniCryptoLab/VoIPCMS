@@ -91,7 +91,7 @@ def upload_feature_numbers(request):
         else:
             client_ip = get_client_ip(request)
             data = json.loads(request.body)
-            
+
             FeatureNumber.objects.upload_numbers(data['country'], data['numbers'])
             return json_response(Success())
     except Exception as e:

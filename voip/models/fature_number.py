@@ -15,7 +15,6 @@ from voip import settings
 
 CALL_MODEL = (
     ('Direct', 'Direct'),
-    ('Bypass', 'Bypass'),
     ('Auto', 'Auto'),
     ('Block', 'Block'),
 )
