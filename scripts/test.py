@@ -82,6 +82,8 @@ def on_call_connect(src_ip, number, file):
 
 
 def get_value(dict, field, val):
+    if dict is None:
+        return val
     if field in dict:
         return dict[field]
     else:
@@ -120,6 +122,7 @@ else:
 
     # config
     connect_target = get_value(call_config, 'asr', connect_target)
+    ring_type = get_value(call_config, 'ringtone', ring_type)
     agi.verbose('call config asr:%s busy:%s decline:%s power off:%s not reach:%s ring:%s' % (
     connect_target, not_connect_busy, not_connect_decline, not_connect_poweroff, not_connect_notreach, ring_type))
 
