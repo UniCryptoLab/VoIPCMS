@@ -118,6 +118,7 @@ class CallManager(object):
 
         config = {
             'asr': 0.18,
+            'ringtone': 0,
             'enable_sky_net': False,
             'connect_via_trunk': False,
             'is_blocked': False,
@@ -133,7 +134,13 @@ class CallManager(object):
                 item = self._inbound_ips_map[src_ip]
                 # if have src ip config, set asr and enable_sky_net
                 config['asr'] = item['asr']
+                if item['ringtone']:
+                    config['ringtone'] = 1
+                else:
+                    config['ringtone'] = 0
+
                 config['enable_sky_net'] = item['enable_sky_net']
+
 
                 enable_sky_net = item['enable_sky_net']
 

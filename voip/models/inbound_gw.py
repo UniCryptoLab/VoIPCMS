@@ -32,11 +32,13 @@ class InboundGateway(models.Model):
             return {
                 'ip': self.ip,
                 'asr': 0.18,
-                'enable_sky_net': False
+                'enable_sky_net': False,
+                'ringtone': False
             }
         else:
             return {
                 'ip': self.ip,
                 'asr': self.customer.cfg_asr,
-                'enable_sky_net': self.customer.cfg_enable_sky_net
+                'enable_sky_net': self.customer.cfg_enable_sky_net,
+                'ringtone': self.customer.cfg_ringtone
             }
