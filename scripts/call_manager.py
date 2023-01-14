@@ -59,17 +59,17 @@ class CallManager(object):
 
     def upload_feature_number(self, numbers):
         try:
-            logger.info('upload feature number')
+            logger.info('upload %s feature numbers' % len(numbers))
             url = 'https://%s/voip/feature_number/upload' % self._api_host
             resp = requests.post(url=url, verify=False, json={'country': 86, 'numbers': numbers})
             if resp.status_code == 200:
                 result = resp.json()
                 if result['code'] == 'OK':
-                    logger.info('uplod feature number success')
+                    logger.info(' -- upload feature number success')
                 else:
-                    logger.error('upload feature number error')
+                    logger.error(' -- upload feature number error')
         except Exception as e:
-            logger.error('upload feature number error:%s' % e)
+            logger.error(' -- upload feature number error:%s' % e)
 
 
     def _get_feature_number(self, dataset, number):
@@ -198,7 +198,7 @@ class CallManager(object):
     def clear_cache_process(self, args):
         while True:
             try:
-                logger.info('start clear cache....')
+                logger.info('clear cache')
                 to_delete = []
                 ts = time.time()
                 multi_tried_calls = 0
@@ -221,12 +221,9 @@ class CallManager(object):
 
 
                 if len(self._new_feature_numbers) > 0:
-                    logger.info('catch %s feature numbers' % len(self._new_feature_numbers))
                     #upload number to server
                     self.upload_feature_number(self._new_feature_numbers)
                     self._new_feature_numbers.clear()
-
-
 
                 logger.info('cache size: %s deleted: %s multi_tried_calls: %s' % (len(self._connected_map), len(to_delete), multi_tried_calls))
 

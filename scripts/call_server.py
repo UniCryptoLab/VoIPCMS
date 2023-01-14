@@ -53,7 +53,23 @@ def on_call_connect():
         logger.info('call:%s via src ip:%s connect to file:%s' % (number, src_ip, file))
     return jsonify({'code': 0})
 
+@app.route('/call/config', methods=['GET'])
+def get_call_config():
+    """
+    get call detail
+    :return:
+    """
+    number = request.args.get('number')
+    src_ip = request.args.get('src_ip')
 
+    config = manager.get_call_config(src_ip, number)
+
+    call_data = manager.get_call_data(number)
+    try_count = call_data.try_count
+    connect_time = call_data.connect_time
+
+    logger.info('query call config for number: %s  via src ip:%s try count: %s connect_time:%s config: %s ' % (number, src_ip, try_count, connect_time, config))
+    return jsonify({'code': 0, 'data': config})
 
 @app.route('/call/detail', methods=['GET'])
 def get_call_detail():
