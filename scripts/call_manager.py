@@ -123,6 +123,7 @@ class CallManager(object):
             'connect_via_trunk': False,
             'is_blocked': False,
             'is_connected': False,  # will delete future
+            'inbound_name': 'None'
         }
 
         enable_sky_net = False
@@ -140,8 +141,7 @@ class CallManager(object):
                     config['ringtone'] = 0
 
                 config['enable_sky_net'] = item['enable_sky_net']
-
-
+                config['inbound_name'] = item['inbound_name']
                 enable_sky_net = item['enable_sky_net']
 
         if enable_sky_net:
