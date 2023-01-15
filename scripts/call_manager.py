@@ -91,7 +91,7 @@ class CallManager(object):
         return None
 
 
-    def on_connect(self, prefix, number, file):
+    def on_connect(self, prefix, number, file, gateway):
         """
         update number latest connect time
         :param number:

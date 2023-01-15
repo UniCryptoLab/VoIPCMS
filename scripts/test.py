@@ -26,6 +26,7 @@ not_connect_notreach = float(os.getenv('NO_CONNECT_NOTREACH', 0.05))
 
 cm_host = os.getenv('CM_HOST', '127.0.0.1:8080')
 dst_channel = os.getenv('DEST_CHANNEL', 'sbc01')
+gateway = os.getenv('GATEWAY', 'gw-01')
 
 mobile_number_re = '^1(3[0-9]|4[579]|5[0-3,5-9]|6[6]|7[0135678]|8[0-9]|9[89])\d{8}$'
 
@@ -76,7 +77,7 @@ def get_call_config(prefix, number):
 def on_call_connect(prefix, number, file):
     try:
         url = 'http://%s/call/connect' % cm_host
-        resp = requests.post(url=url, verify=False, json={'prefix': prefix, 'number': number, 'file': file})
+        resp = requests.post(url=url, verify=False, json={'prefix': prefix, 'number': number, 'file': file, 'gateway': gateway})
     except Exception as e:
         agi.verbose("on connect call:%s error:%s" % (number, e))
 
@@ -97,11 +98,11 @@ callerId = agi.env['agi_callerid']
 caller_prefixes = [852244, 852241, 852225, 852236, 852244, 852267, 852263, 852233, 852245, 852278, 852259]
 caller_prefix_cnt = len(caller_prefixes)
 caller_prefix_idx = int(caller_prefix_cnt * random.random())
-callerId = '00%s%s' % (caller_prefixes[caller_prefix_idx], int(random.random() * 100000))
+callerId = '00%s%s' % (caller_prefixes[caller_prefix_idx], ('%s' % int(random.random() * 100000)).zfill(5))
 agi.set_callerid(callerId)
 
 src_ip = agi.get_variable('src_ip')
-agi.verbose("source ip:%s" % src_ip)
+agi.verbose("---- call from ip:%s %s -> %s ----" % (src_ip, agi.env['agi_callerid'], agi.env['agi_dnid']))
 
 dnid = agi.env['agi_dnid']
 prefix = ''

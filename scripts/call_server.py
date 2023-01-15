@@ -47,10 +47,11 @@ def on_call_connect():
     req = request.get_json()
     number = _get_field(req, 'number')
     prefix = _get_field(req, 'prefix')
+    gateway = _get_field(req, 'gateway')
     file = _get_field(req, 'file')
     if number is not None and number != '':
-        manager.on_connect(prefix, number, file)
-        logger.info('call:%s via prefix: %s connect to file:%s' % (number, prefix, file))
+        manager.on_connect(prefix, number, file, gateway)
+        logger.info('-- call:%s via prefix: %s connect to file:%s gw:%s ' % (number, prefix, file, gateway))
     return jsonify({'code': 0})
 
 @app.route('/call/config', methods=['GET'])
