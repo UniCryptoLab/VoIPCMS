@@ -48,7 +48,7 @@ class Customer(models.Model):
     objects = CustomerManager()
 
     class Meta:
-        ordering = ['name', ]
+        ordering = ['prefix', ]
 
     def __str__(self):
         return self.name
