@@ -82,6 +82,6 @@ admin.site.register(Customer, CustomerAdmin)
 admin.site.register(Recharge, RechargeAdmin)
 
 admin.site.register(FeatureNumber, FeatureNumberAdmin)
-admin.site.register(InboundGateway, InboundGatewayAdmin)
+#admin.site.register(InboundGateway, InboundGatewayAdmin)
 
 
