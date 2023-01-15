@@ -70,6 +70,7 @@ class RechargeAdmin(admin.ModelAdmin):
 class FeatureNumberAdmin(admin.ModelAdmin):
     list_display = ('number', 'country', 'call_model', 'created_time')
     list_filter = ('country', 'call_model')
+    search_fields = ('number',)
 
 class InboundGatewayAdmin(admin.ModelAdmin):
     list_display = ('ip', 'customer')

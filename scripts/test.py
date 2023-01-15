@@ -111,8 +111,6 @@ if dnid[0].isalpha():
     prefix = dnid[:5][2:]   #999
     dnid = dnid[5:]         #
 
-
-
 call_config = get_call_config(prefix, dnid)
 
 if call_config is not None and get_value(call_config, 'is_block', False):
@@ -122,11 +120,11 @@ if call_config is not None and get_value(call_config, 'is_block', False):
 
 elif call_config is not None and get_value(call_config, 'connect_via_trunk', False):
     # if need route to trunk
-    agi.verbose("connect call via trunk, from: %s to: %s" % (callerId, dnid))
+    agi.verbose("connect call via trunk, prefix: %s from: %s to: %s" % (prefix, callerId, dnid))
     agi.appexec('dial', 'SIP/%s/%s,60' % (dst_channel, dnid))
 
 else:
-    agi.verbose("connect call via local, from: %s to: %s" % (callerId, dnid))
+    agi.verbose("connect call via local, prefix: %s from: %s to: %s" % (prefix, callerId, dnid))
 
     # config
     connect_target = get_value(call_config, 'asr', connect_target)
