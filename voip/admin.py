@@ -23,6 +23,34 @@ class StaffAdmin(admin.ModelAdmin):
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ('name', 'email', 'skype_group_id', 'switch', 'prefix', 'cfg_asr', 'cfg_ringtone', 'cfg_enable_sky_net')
     list_filter = ('switch',)
+    fieldsets = (
+        (None, {
+            "fields": [
+                "name", "email", "website",
+            ]
+        }),
+        ("Config", {
+            "fields": [
+                "cfg_asr", "cfg_ringtone", "cfg_enable_sky_net", "cfg_mix_ratio"
+            ]
+        }),
+        ("Biz", {
+            "fields": [
+                "prefix", "switch"
+            ]
+        }),
+
+        ("Other", {
+
+            "fields": [
+                "creator", "staff", "skype_group_id", "description"
+            ]
+        })
+    )
+
+    def get_readonly_fields(self, request, obj=None):
+        return ['prefix']
+
     def customer_action(self, obj):
         """
 
