@@ -21,7 +21,7 @@ class StaffAdmin(admin.ModelAdmin):
     list_display = ('name', 'skype_id', 'email', 'switch', 'is_admin')
 
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ('name', 'skype_group_id', 'switch', 'cfg_asr', 'cfg_ringtone', 'cfg_enable_sky_net')
+    list_display = ('name', 'skype_group_id', 'switch', 'prefix', 'cfg_asr', 'cfg_ringtone', 'cfg_enable_sky_net')
 
     def customer_action(self, obj):
         """
