@@ -58,9 +58,9 @@ def get_randam_wait(normal, range):
     return wait
 
 
-def get_call_config(src_ip, number):
+def get_call_config(prefix, number):
     try:
-        url = 'http://%s/call/config?number=%s&src_ip=%s' % (cm_host, number, src_ip)
+        url = 'http://%s/call/config?number=%s&prefix=%s' % (cm_host, number, prefix)
         # agi.verbose("url: %s" % url)
         resp = requests.get(url=url, verify=False)
         if resp.status_code == 200:
@@ -73,10 +73,10 @@ def get_call_config(src_ip, number):
         return None
 
 
-def on_call_connect(src_ip, number, file):
+def on_call_connect(prefix, number, file):
     try:
         url = 'http://%s/call/connect' % cm_host
-        resp = requests.post(url=url, verify=False, json={'src_ip': src_ip, 'number': number, 'file': file})
+        resp = requests.post(url=url, verify=False, json={'prefix': prefix, 'number': number, 'file': file})
     except Exception as e:
         agi.verbose("on connect call:%s error:%s" % (number, e))
 
@@ -94,28 +94,36 @@ agi = AGI()
 
 # agi.verbose("python agi started")
 callerId = agi.env['agi_callerid']
-prefixs = [852244, 852241, 852225, 852236, 852244, 852267, 852263, 852233, 852245, 852278, 852259]
-prefix_cnt = len(prefixs)
-prefix_idx = int(prefix_cnt * random.random())
-callerId = '00%s%s' % (prefixs[prefix_idx], int(random.random() * 100000))
+caller_prefixes = [852244, 852241, 852225, 852236, 852244, 852267, 852263, 852233, 852245, 852278, 852259]
+caller_prefix_cnt = len(caller_prefixes)
+caller_prefix_idx = int(caller_prefix_cnt * random.random())
+callerId = '00%s%s' % (caller_prefixes[caller_prefix_idx], int(random.random() * 100000))
 agi.set_callerid(callerId)
 
 src_ip = agi.get_variable('src_ip')
 agi.verbose("source ip:%s" % src_ip)
 
 dnid = agi.env['agi_dnid']
+prefix = ''
 
-call_config = get_call_config(src_ip, dnid)
+#CN9998613922334455
+if dnid[0].isalpha():
+    prefix = dnid[:5][2:]   #999
+    dnid = dnid[5:]         #
+
+
+
+call_config = get_call_config(prefix, dnid)
 
 if call_config is not None and get_value(call_config, 'is_block', False):
-        # number is blocked
-        agi.verbose("number:%s is blocked % dnid")
-        agi.set_variable('TCode', 19)
+    # number is blocked
+    agi.verbose("number:%s is blocked % dnid")
+    agi.set_variable('TCode', 19)
 
 elif call_config is not None and get_value(call_config, 'connect_via_trunk', False):
-        # if need route to trunk
-        agi.verbose("connect call via trunk, from: %s to: %s" % (callerId, dnid))
-        agi.appexec('dial', 'SIP/%s/%s,60' % (dst_channel, dnid))
+    # if need route to trunk
+    agi.verbose("connect call via trunk, from: %s to: %s" % (callerId, dnid))
+    agi.appexec('dial', 'SIP/%s/%s,60' % (dst_channel, dnid))
 
 else:
     agi.verbose("connect call via local, from: %s to: %s" % (callerId, dnid))
@@ -124,7 +132,7 @@ else:
     connect_target = get_value(call_config, 'asr', connect_target)
     ring_type = get_value(call_config, 'ringtone', ring_type)
     agi.verbose('call config asr:%s busy:%s decline:%s power off:%s not reach:%s ring:%s' % (
-    connect_target, not_connect_busy, not_connect_decline, not_connect_poweroff, not_connect_notreach, ring_type))
+        connect_target, not_connect_busy, not_connect_decline, not_connect_poweroff, not_connect_notreach, ring_type))
 
     # check phone number
     if not dnid.startswith('86'):
@@ -167,7 +175,7 @@ else:
         agi.verbose("files target:%s" % files_target)
         agi.appexec('answer')
         agi.appexec('wait', 2)
-        on_call_connect(src_ip, dnid, files_target)
+        on_call_connect(prefix, dnid, files_target)
         agi.appexec('playback', '/opt/asterisk/sound/%s' % files_target)
         agi.appexec('wait', 3)
         agi.set_variable('TCode', 16)

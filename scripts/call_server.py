@@ -46,11 +46,11 @@ def on_call_connect():
 
     req = request.get_json()
     number = _get_field(req, 'number')
-    src_ip = _get_field(req, 'src_ip')
+    prefix = _get_field(req, 'prefix')
     file = _get_field(req, 'file')
     if number is not None and number != '':
-        manager.on_connect(src_ip, number, file)
-        logger.info('call:%s via src ip:%s connect to file:%s' % (number, src_ip, file))
+        manager.on_connect(prefix, number, file)
+        logger.info('call:%s via prefix: %s connect to file:%s' % (number, prefix, file))
     return jsonify({'code': 0})
 
 @app.route('/call/config', methods=['GET'])
@@ -60,15 +60,15 @@ def get_call_config():
     :return:
     """
     number = request.args.get('number')
-    src_ip = request.args.get('src_ip')
+    prefix = request.args.get('prefix')
 
-    config = manager.get_call_config(src_ip, number)
+    config = manager.get_call_config(prefix, number)
 
     call_data = manager.get_call_data(number)
     try_count = call_data.try_count
     connect_time = call_data.connect_time
 
-    logger.info('query call config for number: %s  via src ip:%s try count: %s connect_time:%s config: %s ' % (number, src_ip, try_count, connect_time, config))
+    logger.info('query call config for number: %s  via prefix: %s try count: %s connect_time:%s config: %s ' % (number, prefix, try_count, connect_time, config))
     return jsonify({'code': 0, 'data': config})
 
 @app.route('/call/detail', methods=['GET'])
@@ -78,15 +78,15 @@ def get_call_detail():
     :return:
     """
     number = request.args.get('number')
-    src_ip = request.args.get('src_ip')
+    prefix = request.args.get('prefix')
 
-    config = manager.get_call_config(src_ip, number)
+    config = manager.get_call_config(prefix, number)
 
     call_data = manager.get_call_data(number)
     try_count = call_data.try_count
     connect_time = call_data.connect_time
 
-    logger.info('query call config for number: %s  via src ip:%s try count: %s connect_time:%s config: %s ' % (number, src_ip, try_count, connect_time, config))
+    logger.info('query call config for number: %s  via prefix: %s try count: %s connect_time:%s config: %s ' % (number, prefix, try_count, connect_time, config))
     return jsonify({'code': 0, 'data': config})
 
 

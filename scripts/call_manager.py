@@ -32,6 +32,7 @@ class CallManager(object):
         self._connected_map = {}
         self._config = None
         self._inbound_ips_map = {}
+        self._prefix_map = {}
         self._new_feature_numbers = []
         self._api_host = host
         self.sync_config()
@@ -53,7 +54,10 @@ class CallManager(object):
                         for item in self._config['inbound_ips']:
                             self._inbound_ips_map[item['ip']] = item
 
-                            #logger.debug('config:%s' % self._config)
+                    self._prefix_map.clear()
+                    if 'prefixes' in self._config:
+                        for item in self._config['prefixes']:
+                            self._prefix_map[item['prefix']] = item
         except Exception as e:
             logger.error('sync config error:%s' % e)
 
@@ -87,7 +91,7 @@ class CallManager(object):
         return None
 
 
-    def on_connect(self, src_ip, number, file):
+    def on_connect(self, prefix, number, file):
         """
         update number latest connect time
         :param number:
@@ -100,7 +104,7 @@ class CallManager(object):
         data.connect_time = time.time()
 
 
-    def get_call_config(self, src_ip, number):
+    def get_call_config(self, prefix, number):
         """
         get call config data
         :param number:
@@ -123,16 +127,17 @@ class CallManager(object):
             'connect_via_trunk': False,
             'is_blocked': False,
             'is_connected': False,  # will delete future
-            'inbound_name': 'None'
+            'name': 'None',
+            'prefix': ''
         }
 
         enable_sky_net = False
-        if src_ip is None or src_ip == '':#old version do not provider src ip
+        if prefix is None or prefix == '':#old version do not provider src ip
             enable_sky_net = True
             config['enable_sky_net'] = True
         else:
-            if src_ip in self._inbound_ips_map:
-                item = self._inbound_ips_map[src_ip]
+            if prefix in self._prefix_map:
+                item = self._prefix_map[prefix]
                 # if have src ip config, set asr and enable_sky_net
                 config['asr'] = item['asr']
                 if item['ringtone']:
@@ -141,7 +146,9 @@ class CallManager(object):
                     config['ringtone'] = 0
 
                 config['enable_sky_net'] = item['enable_sky_net']
-                config['inbound_name'] = item['inbound_name']
+                config['name'] = item['name']
+                config['prefix'] = item['prefix']
+
                 enable_sky_net = item['enable_sky_net']
 
         if enable_sky_net:
