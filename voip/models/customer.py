@@ -35,14 +35,17 @@ class Customer(models.Model):
     Customer
     """
     name = models.CharField('Name', max_length=50, default='name')
-    skype_group_id = models.CharField('SkypeGroupId', max_length=200, default='', blank=True, null=True)
+    skype_group_id = models.CharField('SkypeGroupId', max_length=100, default='', blank=True, null=True)
     prefix = models.CharField('Prefix', max_length=10, default='', blank=True, null=True)
     creator = models.ForeignKey(Staff, verbose_name='Creator', related_name='customers',  on_delete=models.SET_NULL, null=True)
     staff = models.ForeignKey(Staff, verbose_name='Sales', related_name='sale_customers', on_delete=models.SET_NULL, null=True)
     switch = models.ForeignKey('Switch', verbose_name='Switch', on_delete=models.SET_NULL, null=True)
+    email = models.EmailField('Email', max_length=100, default='user@example.com')
+    website = models.URLField('Website', max_length=100, default='https://example.com')
     cfg_asr = models.FloatField('ASR', default=0.18)
     cfg_ringtone = models.BooleanField(default=False, verbose_name='RingTone')
     cfg_enable_sky_net = models.BooleanField(default=False, verbose_name='SkyNet')
+    cfg_mix_ratio = models.FloatField('MixRatio', default=0.1)
     description = models.CharField('Description', max_length=1000, default='', blank=True)
 
     objects = CustomerManager()
@@ -59,6 +62,7 @@ class Customer(models.Model):
                 'asr': self.cfg_asr,
                 'enable_sky_net': self.cfg_enable_sky_net,
                 'ringtone': self.cfg_ringtone,
+                'mix_ratio': self.cfg_mix_ratio,#when sky net enable, mix_ratio is used for trunk / local
                 'name': self.name
             }
 
