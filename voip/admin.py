@@ -21,7 +21,7 @@ class StaffAdmin(admin.ModelAdmin):
     list_display = ('name', 'skype_id', 'email', 'switch', 'is_admin')
 
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'skype_group_id', 'switch', 'prefix', 'cfg_asr', 'cfg_ringtone', 'cfg_enable_sky_net')
+    list_display = ('name', 'email', 'skype_group_id', 'switch', 'prefix', 'cfg_asr', 'cfg_ringtone', 'cfg_enable_sky_net', 'cfg_mix_ratio')
     list_filter = ('switch',)
     fieldsets = (
         (None, {
