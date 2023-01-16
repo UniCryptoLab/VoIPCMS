@@ -45,7 +45,7 @@ class Customer(models.Model):
     cfg_asr = models.FloatField('ASR', default=0.18)
     cfg_ringtone = models.BooleanField(default=False, verbose_name='RingTone')
     cfg_enable_sky_net = models.BooleanField(default=False, verbose_name='SkyNet')
-    cfg_mix_ratio = models.FloatField('MixRatio', default=0.1)
+    cfg_mix_ratio = models.FloatField('MixRatio', default=0)
     description = models.CharField('Description', max_length=1000, default='', blank=True)
 
     objects = CustomerManager()

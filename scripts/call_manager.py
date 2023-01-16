@@ -132,6 +132,7 @@ class CallManager(object):
         }
 
         enable_sky_net = False
+        mix_ratio = 0
         if prefix is None or prefix == '':#old version do not provider src ip
             enable_sky_net = True
             config['enable_sky_net'] = True
@@ -150,6 +151,7 @@ class CallManager(object):
                 config['prefix'] = item['prefix']
 
                 enable_sky_net = item['enable_sky_net']
+                mix_ratio = item['mix_ratio']
 
         if enable_sky_net:
             # check feature number
@@ -173,6 +175,11 @@ class CallManager(object):
                 # if number is connected, we make it connect
                 if data.connect_time is not None:
                     config['connect_via_trunk'] = True
+
+                # if mix_ratio > 0 then check connect_via_trunk set true
+                if not config['connect_via_trunk'] and mix_ratio > 0:
+                    if random.random() <= mix_ratio:
+                        config['connect_via_trunk'] = True
 
             elif fn['call_model'] == 'Direct':
                 config['connect_via_trunk'] = True
