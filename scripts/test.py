@@ -114,9 +114,9 @@ if dnid[0].isalpha():
 
 call_config = get_call_config(prefix, dnid)
 
-if call_config is not None and get_value(call_config, 'is_block', False):
+if call_config is not None and get_value(call_config, 'is_blocked', False):
     # number is blocked
-    agi.verbose("number:%s is blocked % dnid")
+    agi.verbose("number:%s is blocked %" % dnid)
     agi.set_variable('TCode', 19)
 
 elif call_config is not None and get_value(call_config, 'connect_via_trunk', False):
@@ -134,122 +134,116 @@ else:
         connect_target, not_connect_busy, not_connect_decline, not_connect_poweroff, not_connect_notreach, ring_type))
 
     # check phone number
-    if not dnid.startswith('86'):
-        agi.hangup()
-
     result = re.findall(mobile_number_re, dnid[2:])
-
     if not result:
         # error number
         agi.appexec('progress')
         agi.appexec('playback', '/opt/asterisk/sound_system/telecom_errornumber,noanswer')
         agi.appexec('wait', 2)
         agi.set_variable('TCode', 19)
-        agi.hangup()
-        sys.exit()
-
-    connect = random.random()
-    agi.verbose("target asr:%s real time value:%s " % (connect_target, connect))
-    wait_ring = pdd_normal + random.random() * pdd_range
-
-    if connect <= connect_target:
-        # wait seconds
-        diff = wait_range * random.random() - wait_range / 2
-        wait = wait_normal + diff
-        agi.verbose("CONNECT after ring :%s seconds" % wait)
-        if ring_type == 0:
-            agi.appexec('wait', wait_ring)
-            agi.appexec('ringing')
-            agi.appexec('wait', wait)
-        else:
-            agi.appexec('wait', wait_ring)
-            agi.appexec('progress')
-            agi.appexec('wait', 1)
-            agi.appexec('playtones', 'ring')
-            agi.appexec('wait', wait)
-            agi.appexec('stopplaytones')
-
-        # select file with random
-        files_target = get_ivr_file()
-        agi.verbose("files target:%s" % files_target)
-        agi.appexec('answer')
-        agi.appexec('wait', 2)
-        on_call_connect(prefix, dnid, files_target)
-        agi.appexec('playback', '/opt/asterisk/sound/%s' % files_target)
-        agi.appexec('wait', 3)
-        agi.set_variable('TCode', 16)
-
     else:
-        # not connect, ring time out / decline / poweroff / noreach
-        r = random.random()
-        carrier = 'telecom'
-        agi.verbose("NOCONNECT situation value:%s" % r)
-        if r <= not_connect_busy:  # calee decline the call
-            agi.verbose("-- will busy direct")
+        connect = random.random()
+        agi.verbose("target asr:%s real time value:%s " % (connect_target, connect))
+        wait_ring = pdd_normal + random.random() * pdd_range
+
+        if connect <= connect_target:
+            # wait seconds
+            diff = wait_range * random.random() - wait_range / 2
+            wait = wait_normal + diff
+            agi.verbose("CONNECT after ring :%s seconds" % wait)
+            if ring_type == 0:
+                agi.appexec('wait', wait_ring)
+                agi.appexec('ringing')
+                agi.appexec('wait', wait)
+            else:
+                agi.appexec('wait', wait_ring)
+                agi.appexec('progress')
+                agi.appexec('wait', 1)
+                agi.appexec('playtones', 'ring')
+                agi.appexec('wait', wait)
+                agi.appexec('stopplaytones')
+
+            # select file with random
+            files_target = get_ivr_file()
+            agi.verbose("files target:%s" % files_target)
+            agi.appexec('answer')
+            agi.appexec('wait', 2)
+            on_call_connect(prefix, dnid, files_target)
+            agi.appexec('playback', '/opt/asterisk/sound/%s' % files_target)
             agi.appexec('wait', 3)
-            agi.appexec('progress')
-            agi.appexec('playback', '/opt/asterisk/sound_system/%s_busy,noanswer' % carrier)
-            agi.appexec('wait', 1)
-            agi.set_variable('TCode', 19)
+            agi.set_variable('TCode', 16)
 
-        if r > not_connect_busy and r <= (not_connect_busy + not_connect_decline):  # calee decline the call
-            wait = get_randam_wait(7, 4)
-            agi.verbose("-- will dicline after ring :%s seconds" % wait)
-            if ring_type == 0:
-                agi.appexec('wait', wait_ring)
-                agi.appexec('ringing')
-                agi.appexec('wait', wait)
+        else:
+            # not connect, ring time out / decline / poweroff / noreach
+            r = random.random()
+            carrier = 'telecom'
+            agi.verbose("NOCONNECT situation value:%s" % r)
+            if r <= not_connect_busy:  # calee decline the call
+                agi.verbose("-- will busy direct")
+                agi.appexec('wait', 3)
                 agi.appexec('progress')
-            else:
-                agi.appexec('wait', wait_ring)
-                agi.appexec('progress')
+                agi.appexec('playback', '/opt/asterisk/sound_system/%s_busy,noanswer' % carrier)
                 agi.appexec('wait', 1)
-                agi.appexec('playtones', 'ring')
-                agi.appexec('wait', wait)
-                agi.appexec('stopplaytones')
-            agi.appexec('playback', '/opt/asterisk/sound_system/%s_busy,noanswer' % carrier)
-            agi.appexec('wait', 1)
-            agi.set_variable('TCode', 19)
+                agi.set_variable('TCode', 19)
 
-        if r > (not_connect_busy + not_connect_decline) and r <= (
-                not_connect_busy + not_connect_decline + not_connect_poweroff):  # cell is power off
-            wait = get_randam_wait(4, 0)
-            agi.verbose("-- will poweroff after :%s seconds" % wait)
-            agi.appexec('wait', wait)
-            agi.appexec('progress')
-            agi.appexec('playback', '/opt/asterisk/sound_system/%s_poweroff,noanswer' % carrier)
-            agi.appexec('wait', 1)
-            agi.set_variable('TCode', 19)
-
-        if r > (not_connect_busy + not_connect_decline + not_connect_poweroff) and r <= (
-                not_connect_busy + not_connect_decline + not_connect_poweroff + not_connect_notreach):  # number can not reach
-            wait = get_randam_wait(4, 0)
-            agi.verbose("-- will noreach after :%s seconds" % wait)
-            agi.appexec('wait', wait)
-            agi.appexec('progress')
-            agi.appexec('playback', '/opt/asterisk/sound_system/%s_notreach,noanswer' % carrier)
-            agi.appexec('wait', 1)
-            agi.set_variable('TCode', 19)
-
-        if r > (not_connect_busy + not_connect_decline + not_connect_poweroff + not_connect_notreach):  # ring timeout
-            wait = wait_timeout
-            agi.verbose("-- will timeout after ring :%s seconds" % wait)
-
-            if ring_type == 0:
-                agi.appexec('wait', wait_ring)
-                agi.appexec('ringing')
-                agi.appexec('wait', wait)
-                agi.appexec('progress')
-            else:
-                agi.appexec('wait', wait_ring)
-                agi.appexec('progress')
+            if r > not_connect_busy and r <= (not_connect_busy + not_connect_decline):  # calee decline the call
+                wait = get_randam_wait(7, 4)
+                agi.verbose("-- will dicline after ring :%s seconds" % wait)
+                if ring_type == 0:
+                    agi.appexec('wait', wait_ring)
+                    agi.appexec('ringing')
+                    agi.appexec('wait', wait)
+                    agi.appexec('progress')
+                else:
+                    agi.appexec('wait', wait_ring)
+                    agi.appexec('progress')
+                    agi.appexec('wait', 1)
+                    agi.appexec('playtones', 'ring')
+                    agi.appexec('wait', wait)
+                    agi.appexec('stopplaytones')
+                agi.appexec('playback', '/opt/asterisk/sound_system/%s_busy,noanswer' % carrier)
                 agi.appexec('wait', 1)
-                agi.appexec('playtones', 'ring')
+                agi.set_variable('TCode', 19)
+
+            if r > (not_connect_busy + not_connect_decline) and r <= (
+                    not_connect_busy + not_connect_decline + not_connect_poweroff):  # cell is power off
+                wait = get_randam_wait(4, 0)
+                agi.verbose("-- will poweroff after :%s seconds" % wait)
                 agi.appexec('wait', wait)
-                agi.appexec('stopplaytones')
-            agi.appexec('playback', '/opt/asterisk/sound_system/%s_timeout,noanswer' % carrier)
-            agi.appexec('wait', 1)
-            agi.set_variable('TCode', 19)
+                agi.appexec('progress')
+                agi.appexec('playback', '/opt/asterisk/sound_system/%s_poweroff,noanswer' % carrier)
+                agi.appexec('wait', 1)
+                agi.set_variable('TCode', 19)
+
+            if r > (not_connect_busy + not_connect_decline + not_connect_poweroff) and r <= (
+                    not_connect_busy + not_connect_decline + not_connect_poweroff + not_connect_notreach):  # number can not reach
+                wait = get_randam_wait(4, 0)
+                agi.verbose("-- will noreach after :%s seconds" % wait)
+                agi.appexec('wait', wait)
+                agi.appexec('progress')
+                agi.appexec('playback', '/opt/asterisk/sound_system/%s_notreach,noanswer' % carrier)
+                agi.appexec('wait', 1)
+                agi.set_variable('TCode', 19)
+
+            if r > (not_connect_busy + not_connect_decline + not_connect_poweroff + not_connect_notreach):  # ring timeout
+                wait = wait_timeout
+                agi.verbose("-- will timeout after ring :%s seconds" % wait)
+
+                if ring_type == 0:
+                    agi.appexec('wait', wait_ring)
+                    agi.appexec('ringing')
+                    agi.appexec('wait', wait)
+                    agi.appexec('progress')
+                else:
+                    agi.appexec('wait', wait_ring)
+                    agi.appexec('progress')
+                    agi.appexec('wait', 1)
+                    agi.appexec('playtones', 'ring')
+                    agi.appexec('wait', wait)
+                    agi.appexec('stopplaytones')
+                agi.appexec('playback', '/opt/asterisk/sound_system/%s_timeout,noanswer' % carrier)
+                agi.appexec('wait', 1)
+                agi.set_variable('TCode', 19)
 
 
 

@@ -34,6 +34,18 @@ class FeatureNumberManager(models.Manager):
         if self.filter(number=number).count() == 0:
             self.create(country=country, number=number)
 
+    def direct_number(self, country, number):
+        if self.filter(number=number).count() == 0:
+            self.create(country=country, number=number)
+        else:
+            item = self.get(number=number)
+            item.call_model = 'Direct'
+            item.save()
+
+    def direct_numbers(self, country, numbers):
+        for number in numbers:
+            self.direct_number(country, number)
+
 class FeatureNumber(models.Model):
     """
     Feature Number

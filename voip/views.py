@@ -13,7 +13,7 @@ from common import Response,Success,Error, json_response, _json_content
 from common import get_client_ip
 
 from unipayment import UniPaymentClient, ApiException
-from .models import Recharge, FeatureNumber, InboundGateway, Customer
+from .models import Recharge, FeatureNumber, InboundGateway, Customer, CallLog
 from . import settings
 
 import logging, traceback
@@ -100,6 +100,21 @@ def upload_feature_numbers(request):
         logger.error(traceback.format_exc())
         return json_response(Error(str(e)))
 
+
+@csrf_exempt
+def upload_call_logs(request):
+    try:
+        if request.method == "GET":
+            raise Exception("GET not support")
+        else:
+            client_ip = get_client_ip(request)
+            data = json.loads(request.body)
+            for item in data:
+                CallLog.objects.upload_call_log(item['country'], item['number'], item['file'], item['gateway'])
+            return json_response(Success())
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        return json_response(Error(str(e)))
 
 def api_api_check(request):
     try:
