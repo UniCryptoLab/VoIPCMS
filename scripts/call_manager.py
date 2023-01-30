@@ -34,6 +34,7 @@ class CallManager(object):
         self._inbound_ips_map = {}
         self._prefix_map = {}
         self._new_feature_numbers = []
+        self._call_logs = []
         self._api_host = host
         self.sync_config()
 
@@ -60,6 +61,22 @@ class CallManager(object):
                             self._prefix_map[item['prefix']] = item
         except Exception as e:
             logger.error('sync config error:%s' % e)
+            
+    def upload_call_logs(self):
+        try:
+            logger.info('upload call logs to: %s' % self._api_host)
+            url = 'https://%s/voip/call_log/upload' % self._api_host
+            #logger.info('url:%s' % url)
+            logs = self._call_logs
+            self._call_logs = []
+            resp = requests.post(url=url, verify=False, json=logs)
+            if resp.status_code == 200:
+                result = resp.json()
+                if result['code'] != 'OK':
+                    logger.error('upload call logs error')
+        except Exception as e:
+            logger.error('sync config error:%s' % e)
+
 
     def upload_feature_number(self, numbers):
         try:
@@ -102,6 +119,15 @@ class CallManager(object):
 
         data = self._connected_map[number]
         data.connect_time = time.time()
+
+        # append call log
+        item = {
+            'prefix': prefix,
+            'number': number,
+            'file': file,
+            'gateway': gateway
+        }
+        self._call_logs.append(item)
 
 
     def get_call_config(self, prefix, number):
@@ -249,6 +275,7 @@ class CallManager(object):
                 logger.info('cache size: %s deleted: %s multi_tried_calls: %s' % (len(self._connected_map), len(to_delete), multi_tried_calls))
 
                 self.sync_config()
+                self.upload_call_logs()
                 time.sleep(1 * 60)
             except Exception as e:
                 logger.error('process error:%s' % e)

@@ -105,8 +105,8 @@ class InboundGatewayAdmin(admin.ModelAdmin):
     list_filter = ('customer',)
 
 class CallLogAdmin(admin.ModelAdmin):
-    list_display = ('country', 'number', 'file', 'gateway', 'created_time')
-    list_filter = ('gateway', 'country')
+    list_display = ('prefix', 'number', 'file', 'gateway', 'created_time')
+    list_filter = ('gateway', 'prefix')
     search_fields = ('number',)
 
 

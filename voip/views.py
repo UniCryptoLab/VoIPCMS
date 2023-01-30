@@ -109,8 +109,9 @@ def upload_call_logs(request):
         else:
             client_ip = get_client_ip(request)
             data = json.loads(request.body)
+            print(data)
             for item in data:
-                CallLog.objects.upload_call_log(item['country'], item['number'], item['file'], item['gateway'])
+                CallLog.objects.upload_call_log(item['prefix'], item['number'], item['file'], item['gateway'])
             return json_response(Success())
     except Exception as e:
         logger.error(traceback.format_exc())
