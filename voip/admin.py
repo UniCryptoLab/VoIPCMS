@@ -12,7 +12,7 @@ import logging, traceback, json
 logger = logging.getLogger(__name__)
 
 
-from .models import Customer, Switch, Staff, Recharge, FeatureNumber, InboundGateway, CallLog
+from .models import Customer, Switch, Staff, Recharge, FeatureNumber, InboundGateway, CallLog, ErrorFile
 
 class SwitchAdmin(admin.ModelAdmin):
     list_display = ('name', 'ip_address')
@@ -109,6 +109,10 @@ class CallLogAdmin(admin.ModelAdmin):
     list_filter = ('gateway', 'prefix')
     search_fields = ('number',)
 
+class ErrorFileAdmin(admin.ModelAdmin):
+    list_display = ('country', 'file', 'created_time')
+    list_filter = ('country', )
+    search_fields = ('file',)
 
 admin.site.register(Switch, SwitchAdmin)
 admin.site.register(Staff, StaffAdmin)
@@ -117,6 +121,7 @@ admin.site.register(Recharge, RechargeAdmin)
 
 admin.site.register(FeatureNumber, FeatureNumberAdmin)
 admin.site.register(CallLog, CallLogAdmin)
+admin.site.register(ErrorFile, ErrorFileAdmin)
 #admin.site.register(InboundGateway, InboundGatewayAdmin)
 
 
