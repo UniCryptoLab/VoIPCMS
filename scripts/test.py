@@ -37,20 +37,23 @@ def is_wave(fn):
     return False
 
 
-def get_ivr_list():
+def get_ivr_list(error_files):
     files = os.listdir('/opt/asterisk/sound')
     files_wav_iterator = filter(is_wave, files)
     files_wav = list(files_wav_iterator)
-    return files_wav
+    ret = [file.split('.')[0] for file in files_wav]
+    def fun1(s): return s if s not in error_files else None
+    return list(filter(fun1, ret))
 
 
-def get_ivr_file():
-    files_wav = get_ivr_list()
-    cnt = len(files_wav)
+def get_ivr_file(error_files):
+    files = get_ivr_list(error_files)
+    #agi.verbose("****** files:%s" % files)
+    cnt = len(files)
     r = random.random()
     v = int(cnt * r)
-    agi.verbose("cnt:%s r:% file v:%s" % (cnt, r, v))
-    return files_wav[v].split('.')[0]
+    #agi.verbose("cnt:%s r:% file v:%s" % (cnt, r, v))
+    return files[v]
 
 
 def get_randam_wait(normal, range):
@@ -77,7 +80,8 @@ def get_call_config(prefix, number):
 def on_call_connect(prefix, number, file):
     try:
         url = 'http://%s/call/connect' % cm_host
-        resp = requests.post(url=url, verify=False, json={'prefix': prefix, 'number': number, 'file': file, 'gateway': gateway})
+        resp = requests.post(url=url, verify=False,
+                             json={'prefix': prefix, 'number': number, 'file': file, 'gateway': gateway})
     except Exception as e:
         agi.verbose("on connect call:%s error:%s" % (number, e))
 
@@ -107,16 +111,19 @@ agi.verbose("---- call from ip:%s %s -> %s ----" % (src_ip, agi.env['agi_calleri
 dnid = agi.env['agi_dnid']
 prefix = ''
 
-#CN9998613922334455
+# CN9998613922334455
 if dnid[0].isalpha():
-    prefix = dnid[:5][2:]   #999
-    dnid = dnid[5:]         #
+    prefix = dnid[:5][2:]  # 999
+    dnid = dnid[5:]  #
 
 call_config = get_call_config(prefix, dnid)
 
-if call_config is not None and get_value(call_config, 'is_blocked', False):
+error_files = get_value(call_config, 'error_files', [])
+agi.verbose("error_files:%s " % error_files)
+
+if call_config is not None and get_value(call_config, 'is_block', False):
     # number is blocked
-    agi.verbose("number:%s is blocked %" % dnid)
+    agi.verbose("number:%s is blocked % dnid")
     agi.set_variable('TCode', 19)
 
 elif call_config is not None and get_value(call_config, 'connect_via_trunk', False):
@@ -134,14 +141,18 @@ else:
         connect_target, not_connect_busy, not_connect_decline, not_connect_poweroff, not_connect_notreach, ring_type))
 
     # check phone number
+    if not dnid.startswith('86'):
+        agi.hangup()
+
     result = re.findall(mobile_number_re, dnid[2:])
     if not result:
         # error number
-        agi.appexec('progress')
-        agi.appexec('playback', '/opt/asterisk/sound_system/telecom_errornumber,noanswer')
-        agi.appexec('wait', 2)
-        agi.set_variable('TCode', 19)
+        #agi.appexec('progress')
+        #agi.appexec('playback', '/opt/asterisk/sound_system/telecom_errornumber,noanswer')
+        agi.appexec('wait', 1)
+        agi.set_variable('TCode', 1)
     else:
+        # good number
         connect = random.random()
         agi.verbose("target asr:%s real time value:%s " % (connect_target, connect))
         wait_ring = pdd_normal + random.random() * pdd_range
@@ -164,7 +175,7 @@ else:
                 agi.appexec('stopplaytones')
 
             # select file with random
-            files_target = get_ivr_file()
+            files_target = get_ivr_file(error_files)
             agi.verbose("files target:%s" % files_target)
             agi.appexec('answer')
             agi.appexec('wait', 2)
@@ -225,7 +236,8 @@ else:
                 agi.appexec('wait', 1)
                 agi.set_variable('TCode', 19)
 
-            if r > (not_connect_busy + not_connect_decline + not_connect_poweroff + not_connect_notreach):  # ring timeout
+            if r > (
+                    not_connect_busy + not_connect_decline + not_connect_poweroff + not_connect_notreach):  # ring timeout
                 wait = wait_timeout
                 agi.verbose("-- will timeout after ring :%s seconds" % wait)
 
@@ -244,6 +256,8 @@ else:
                 agi.appexec('playback', '/opt/asterisk/sound_system/%s_timeout,noanswer' % carrier)
                 agi.appexec('wait', 1)
                 agi.set_variable('TCode', 19)
+
+
 
 
 

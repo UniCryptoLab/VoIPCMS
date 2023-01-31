@@ -9,6 +9,8 @@ from django.conf import settings
 
 class CallLogManager(models.Manager):
     def upload_call_log(self, prefix, number, file, gateway):
+        if prefix is None or file is None or gateway is None:
+            return 
         self.create(prefix=prefix, number=number, file=file, gateway=gateway)
 
 class CallLog(models.Model):
