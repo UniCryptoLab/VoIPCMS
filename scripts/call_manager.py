@@ -35,6 +35,7 @@ class CallManager(object):
         self._prefix_map = {}
         self._new_feature_numbers = []
         self._call_logs = []
+        self._error_files = []
         self._api_host = host
         self.sync_config()
 
@@ -59,6 +60,10 @@ class CallManager(object):
                     if 'prefixes' in self._config:
                         for item in self._config['prefixes']:
                             self._prefix_map[item['prefix']] = item
+
+                    if 'error_files' in self._config:
+                        self._error_files = self._config['error_files']
+
         except Exception as e:
             logger.error('sync config error:%s' % e)
             
@@ -154,7 +159,8 @@ class CallManager(object):
             'is_blocked': False,
             'is_connected': False,  # will delete future
             'name': 'None',
-            'prefix': ''
+            'prefix': '',
+            'error_files': self._error_files
         }
 
         enable_sky_net = False
