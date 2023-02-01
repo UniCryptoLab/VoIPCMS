@@ -74,7 +74,7 @@ def get_call_manager_config(request):
             feature_numbers = FeatureNumber.objects.filter(country=country).all()
             inbound_ips = InboundGateway.objects.all()
             prefixes = Customer.objects.all()
-            error_files = ErrorFile.objects.filter(country=country).all()
+            error_files = ErrorFile.objects.filter(country=country).filter(is_del=True).all()
             data = {
                 'feature_numbers': [item.to_dict() for item in feature_numbers],
                 'inbound_ips': [item.to_dict() for item in inbound_ips],

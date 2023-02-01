@@ -13,6 +13,7 @@ class ErrorFile(models.Model):
     """
     country = models.CharField(max_length=10, default='86')
     file = models.CharField(max_length=100, default='', blank=True, unique=True)
+    is_del = models.BooleanField(default=False, verbose_name='Delete')
     created_time = models.DateTimeField(default=timezone.now)
 
     class Meta:
