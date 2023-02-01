@@ -18,6 +18,10 @@ class ErrorFile(models.Model):
     class Meta:
         ordering = ['-created_time', ]
 
+    @property
+    def file_url(self):
+        return 'http://file.3trunks.net:8080/ivr/%s' % self.file
+
     def save(self, *args, **kwargs):
         self.file = self.file.strip()
         super().save(*args, **kwargs)
