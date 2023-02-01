@@ -110,7 +110,7 @@ class CallLogAdmin(admin.ModelAdmin):
     search_fields = ('number',)
 
 class ErrorFileAdmin(admin.ModelAdmin):
-    list_display = ('country', 'file', 'file_url', 'is_del', 'created_time')
+    list_display = ('pk', 'country', 'file', 'file_url', 'is_del', 'created_time')
     list_filter = ('country', )
     search_fields = ('file',)
 
