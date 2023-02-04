@@ -147,7 +147,7 @@ class CallManager(object):
         # count try cnt
         data.try_count = data.try_count + 1
         #catch mutli try count number
-        if data.try_count >= 3:
+        if data.try_count >= 5:
             if number not in self._new_feature_numbers:
                 self._new_feature_numbers.append(number)
 

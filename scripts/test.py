@@ -111,12 +111,20 @@ agi.verbose("---- call from ip:%s %s -> %s ----" % (src_ip, agi.env['agi_calleri
 dnid = agi.env['agi_dnid']
 prefix = ''
 
+call_config = None
+need_get_config = True
+
+if '3T' in dnid:
+    need_get_config = False #if traffic is internal
+    dnid = dnid.replace('3T', '') #generate the normal number
+
 # CN9998613922334455
 if dnid[0].isalpha():
     prefix = dnid[:5][2:]  # 999
     dnid = dnid[5:]  #
 
-call_config = get_call_config(prefix, dnid)
+if need_get_config:
+    call_config = get_call_config(prefix, dnid)
 
 error_files = get_value(call_config, 'error_files', [])
 agi.verbose("error_files:%s " % error_files)
