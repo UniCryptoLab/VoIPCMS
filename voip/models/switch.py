@@ -5,6 +5,15 @@ import os
 from django.db import models
 from ..libs.vos import VOSAPI
 
+
+class SwitchManager(models.Manager):
+    def get_switch(self, name):
+        try:
+            return Switch.objects.get(name=name)
+        except Switch.DoesNotExist as e:
+            return None
+
+
 class Switch(models.Model):
     """
     Switch
@@ -14,11 +23,18 @@ class Switch(models.Model):
     api_url = models.CharField('API Url', max_length=200, default='')
     description = models.CharField('Description', max_length=1000, default='', blank=True)
 
+    objects = SwitchManager()
+
     class Meta:
         ordering = ['name', ]
 
     def __str__(self):
         return self.name
+
+    def get_all_customers(self):
+        vos = VOSAPI(self.api_url)
+        ret = vos.get_all_customers()
+        return ret
 
     def init_customer(self, name):
         vos = VOSAPI(self.api_url)

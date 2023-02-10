@@ -28,6 +28,15 @@ class VOSAPI(object):
         self.delete_customer(name)
         self.delete_rate_group(name)
 
+    def get_all_customers(self):
+        url = '%s/external/server/GetAllCustomers' % self.base_url
+        resp = requests.post(url=url, verify=False, json={'key': 0})
+        if resp.status_code == 200:
+            data = resp.json()
+            #logger.debug('result:%s' % data)
+            if data['retCode'] == 0:
+                return data['accounts']
+        return []
 
     def get_customer(self, name):
         url = '%s/external/server/GetCustomer' % self.base_url
