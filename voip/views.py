@@ -13,7 +13,7 @@ from common import Response,Success,Error, json_response, _json_content
 from common import get_client_ip
 
 from unipayment import UniPaymentClient, ApiException
-from .models import Recharge, FeatureNumber, InboundGateway, Customer, CallLog, ErrorFile
+from .models import Recharge, FeatureNumber, InboundGateway, Customer, CallLog, ErrorFile, IP
 from . import settings
 
 import logging, traceback
@@ -82,6 +82,19 @@ def get_call_manager_config(request):
                 'error_files': [item.file for item in error_files]
             }
             return json_response(Success(data))
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        return json_response(Error(str(e)))
+
+
+def get_blacklist_config(request):
+    try:
+        if request.method == "POST":
+            raise Exception("POST not support")
+        else:
+            client_ip = get_client_ip(request)
+            black_list = IP.objects.filter(is_blocked=True).all()
+            return json_response(Success([item.ip for item in black_list]))
     except Exception as e:
         logger.error(traceback.format_exc())
         return json_response(Error(str(e)))
