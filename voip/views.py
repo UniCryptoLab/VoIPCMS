@@ -94,7 +94,7 @@ def get_blacklist_config(request):
         else:
             client_ip = get_client_ip(request)
             black_list = IP.objects.filter(is_blocked=True).all()
-            return json_response(Success([item.ip for item in black_list]))
+            return json_response([item.ip for item in black_list])
     except Exception as e:
         logger.error(traceback.format_exc())
         return json_response(Error(str(e)))
