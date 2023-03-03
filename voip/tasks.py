@@ -4,7 +4,7 @@
 from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 from django.utils import timezone
-from .models import Recharge, Customer
+from .models import Recharge, Customer, CallLog, FeatureNumber
 import logging
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,18 @@ def notify_balance():
         if customer.switch is not None:
             data = customer.switch.get_balance(customer.name)
             skype_bot.send_group_message(customer.skype_group_id, 'Hi, balance:%s od:%s' % (data['balance'], data['overdraft']))
+
+
+
+@shared_task
+def clear_call_log():
+    logger.info('clear old call log')
+    from django.utils import timezone
+    from datetime import timedelta
+    CallLog.objects.filter(created_time__lte=timezone.now()-timedelta(hours=24 * 3)).delete()
+    FeatureNumber.objects.filter(call_model='Auto').filter(created_time__lte=timezone.now() - timedelta(hours=24 * 1)).delete()
+
+
 
 
 @shared_task
