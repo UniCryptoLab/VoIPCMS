@@ -138,7 +138,7 @@ def update_gateway_info(request):
     try:
         if request.method == "POST":
             #logger.info(data)
-            client_ip = get_client_ip()
+            client_ip = get_client_ip(request)
             data = json.loads(request.body)
             try:
 
