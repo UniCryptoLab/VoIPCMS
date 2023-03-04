@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+import sys
 import json
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
@@ -13,7 +13,7 @@ from common import Response,Success,Error, json_response, _json_content
 from common import get_client_ip
 
 from unipayment import UniPaymentClient, ApiException
-from .models import Recharge, FeatureNumber, InboundGateway, Customer, CallLog, ErrorFile, IP
+from .models import Recharge, FeatureNumber, InboundGateway, Customer, CallLog, ErrorFile, IP, OutboundGateway
 from . import settings
 
 import logging, traceback
@@ -131,6 +131,29 @@ def upload_call_logs(request):
     except Exception as e:
         logger.error(traceback.format_exc())
         return json_response(Error(str(e)))
+
+
+@csrf_exempt
+def update_gateway_info(request):
+    try:
+        if request.method == "POST":
+            #logger.info(data)
+            client_ip = get_client_ip()
+            data = json.loads(request.body)
+            try:
+
+                logger.info('gateway:%s report local info:%s' % (client_ip, data))
+                gateway = OutboundGateway.objects.get(ip=client_ip)
+                gateway.update_local_info(data)
+
+            except OutboundGateway.DoesNotExist as e:
+                json_response(Error('Harvester do not exist'))
+        return json_response(Success(''))
+    except Exception as e:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        logger.error(traceback.format_exc())
+        return json_response(Error(exc_value))
+
 
 def api_api_check(request):
     try:

@@ -105,7 +105,7 @@ class InboundGatewayAdmin(admin.ModelAdmin):
     list_filter = ('customer',)
 
 class OutboundGatewayAdmin(admin.ModelAdmin):
-    list_display = ('name', 'ip')
+    list_display = ('name', 'ip', 'statistic', '_is_online', 'up_time')
 
 class CallLogAdmin(admin.ModelAdmin):
     list_display = ('prefix', 'number', 'file', 'gateway', 'created_time')
