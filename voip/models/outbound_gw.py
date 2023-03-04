@@ -64,9 +64,9 @@ class OutboundGateway(models.Model):
 
         cpu_percent = self.cpu_used_percent
         if self.memory_total >0:
-            memory_percent = round(self.memory_used / self.memory_total, 2)
+            memory_percent = round(self.memory_used * 100 / self.memory_total, 2)
         if self.disk_total >0:
-            disk_percent = round(self.disk_used / self.disk_total, 2)
+            disk_percent = round(self.disk_used * 100/ self.disk_total, 2)
 
         return '%s - %s - %s' % (cpu_percent, memory_percent, disk_percent)
 

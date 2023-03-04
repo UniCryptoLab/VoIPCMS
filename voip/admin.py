@@ -3,6 +3,7 @@
 # Register your models here.
 from django.forms import ModelForm
 from django.urls import path
+from django.urls import reverse
 from django.contrib import admin, messages
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseNotFound, Http404 ,HttpResponseRedirect, JsonResponse
@@ -105,7 +106,58 @@ class InboundGatewayAdmin(admin.ModelAdmin):
     list_filter = ('customer',)
 
 class OutboundGatewayAdmin(admin.ModelAdmin):
-    list_display = ('name', 'ip', 'statistic', '_is_online', 'up_time')
+    list_display = ('name', 'ip', 'statistic', '_is_online', 'up_time', 'gateway_action')
+
+    def gateway_action(self, obj):
+        """
+
+        """
+        return format_html(
+            '<a class="button" href="{}">Update</a>&nbsp;'
+            '<a class="button" href="{}">Restart</a>&nbsp;',
+            reverse('admin:gateway-update-system', args=[obj.pk]),
+            reverse('admin:gateway-restart-system', args=[obj.pk]),
+        )
+
+    gateway_action.allow_tags = True
+    gateway_action.short_description = "Action"
+
+    def get_urls(self):
+        # use get_urls for easy adding of views to the admin
+        urls = super(OutboundGatewayAdmin, self).get_urls()
+        my_urls = [
+            path(
+                r'^(?P<server_id>.+)/update-system/$',
+                self.admin_site.admin_view(self.update_system),
+                name='gateway-update-system',
+            ),
+            path(
+                r'^(?P<server_id>.+)/restart-hpool/$',
+                self.admin_site.admin_view(self.restart_system),
+                name='gateway-restart-system',
+            ),
+        ]
+
+        return my_urls + urls
+
+    def update_system(self, request, server_id):
+        previous_url = request.META.get('HTTP_REFERER')
+        from common.gateway_api import GatewayAPI
+        gw = OutboundGateway.objects.get(id=server_id)
+        api = GatewayAPI(gw)
+        result = api.update_system()
+        messages.info(request, '%s %s' % (gw.name, result['msg']))
+        return HttpResponseRedirect(previous_url)
+
+    def restart_system(self, request, server_id):
+        previous_url = request.META.get('HTTP_REFERER')
+        from common.gateway_api import GatewayAPI
+        gw = OutboundGateway.objects.get(id=server_id)
+        api = GatewayAPI(gw)
+        result = api.restart_system()
+        messages.info(request, '%s %s' % (gw.name, result['msg']))
+        return HttpResponseRedirect(previous_url)
+
 
 class CallLogAdmin(admin.ModelAdmin):
     list_display = ('prefix', 'number', 'file', 'gateway', 'created_time')
