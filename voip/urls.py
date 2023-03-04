@@ -10,4 +10,5 @@ urlpatterns = [
     path('config/blacklist', views.get_blacklist_config, name='get_blacklist_config'),
     path('feature_number/upload', views.upload_feature_numbers, name='upload_feature_number'),
     path('call_log/upload', views.upload_call_logs, name='upload_call_log'),
+    path('gateway_info/upload', views.update_gateway_info, name='upload_gateway_info'),
 ]
