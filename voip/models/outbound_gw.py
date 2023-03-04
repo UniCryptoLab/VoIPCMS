@@ -58,9 +58,15 @@ class OutboundGateway(models.Model):
             return '%sh' % round(self.uptime/3600, 2)
 
     def statistic(self):
+        cpu_percent = 'Na'
+        memory_percent ='Na'
+        disk_percent = 'Na'
+
         cpu_percent = self.cpu_used_percent
-        memory_percent = round(self.memory_used / self.memory_total, 2)
-        disk_percent = round(self.disk_used / self.disk_total, 2)
+        if self.memory_total >0:
+            memory_percent = round(self.memory_used / self.memory_total, 2)
+        if self.disk_total >0:
+            disk_percent = round(self.disk_used / self.disk_total, 2)
 
         return '%s - %s - %s' % (cpu_percent, memory_percent, disk_percent)
 
