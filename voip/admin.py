@@ -106,7 +106,7 @@ class InboundGatewayAdmin(admin.ModelAdmin):
     list_filter = ('customer',)
 
 class OutboundGatewayAdmin(admin.ModelAdmin):
-    list_display = ('name', 'ip', 'statistic', '_is_online', 'up_time', 'gateway_action')
+    list_display = ('name', 'ip', 'statistic', 'gateway_info', '_is_online', 'up_time', 'gateway_action')
 
     def gateway_action(self, obj):
         """

@@ -29,6 +29,9 @@ class OutboundGateway(models.Model):
     disk_total = models.BigIntegerField('Disk Total', default=0)
     disk_used = models.BigIntegerField('Disk Used', default=0)
 
+    asterisk_current_calls = models.BigIntegerField('Current Calls', default=0)
+    asterisk_status = models.CharField('Gateway Status', max_length=20, default='', blank=True)
+
     alert_enable = models.BooleanField('Enable Alert', default=True)
 
     class Meta:
@@ -58,6 +61,11 @@ class OutboundGateway(models.Model):
             return '%sm' % round(self.uptime/60, 2)
         else:
             return '%sh' % round(self.uptime/3600, 2)
+
+    def gateway_info(self):
+        return '%s - %s' % (self.asterisk_current_calls, self.asterisk_status)
+
+    gateway_info.short_description = 'Gateway Info'
 
     def statistic(self):
         cpu_percent = 'Na'
@@ -91,6 +99,11 @@ class OutboundGateway(models.Model):
         if 'disk' in data:
             self.disk_total = data['disk']['total']
             self.disk_used = data['disk']['used']
+
+        if 'asterisk' in data:
+            self.asterisk_current_calls = data['asterisk']['calls']
+            self.asterisk_status = data['asterisk']['status']
+
 
         self._update_heartbeat()
         self.save()
