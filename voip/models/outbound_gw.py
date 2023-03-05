@@ -11,6 +11,8 @@ class OutboundGateway(models.Model):
     """
     name = models.CharField('Name', max_length=50, default='Gateway')
     ip = models.CharField('IP', max_length=50, default='127.0.0.1')
+    internal_ip = models.CharField('Internal IP', max_length=50, default='127.0.0.1')
+
     description = models.CharField('Description', max_length=1000, default='', blank=True)
 
     last_heartbeat = models.DateTimeField('Heartbeat', default=timezone.now, blank=True)
@@ -71,8 +73,11 @@ class OutboundGateway(models.Model):
         return '%s - %s - %s' % (cpu_percent, memory_percent, disk_percent)
 
     def update_local_info(self, data):
-        if 'update' in data:
-            self.uptime = data['info']['uptime']
+        if 'uptime' in data:
+            self.uptime = data['uptime']
+
+        if 'internal_ip' in data:
+            self.internal_ip = data['internal_ip']
 
         if 'cpu' in data:
             self.cpu_model = data['cpu']['brand']
