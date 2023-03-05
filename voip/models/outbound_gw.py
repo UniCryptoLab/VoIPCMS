@@ -18,6 +18,7 @@ class OutboundGateway(models.Model):
     last_heartbeat = models.DateTimeField('Heartbeat', default=timezone.now, blank=True)
 
     uptime = models.IntegerField('Uptime', default=0, blank=True)
+    version = models.CharField('Version', max_length=20, default='', blank=True)
 
     cpu_model = models.CharField('CPU', max_length=100, default='', blank=True)
     cpu_cnt = models.IntegerField('CPU Count', default=0)
@@ -83,6 +84,9 @@ class OutboundGateway(models.Model):
     def update_local_info(self, data):
         if 'uptime' in data:
             self.uptime = data['uptime']
+
+        if 'version' in data:
+            self.version = data['version']
 
         if 'internal_ip' in data:
             self.internal_ip = data['internal_ip']
