@@ -5,6 +5,10 @@ from datetime import datetime
 import time, sys
 import random
 import requests
+import pytz
+import datetime
+time_zone = pytz.timezone('Asia/Singapore')
+
 import logging, traceback
 
 if sys.version_info.major == 2:   # Python 2
@@ -166,6 +170,7 @@ class CallManager(object):
 
         enable_sky_net = False
         mix_ratio = 0
+        peak_close_trunk = True
         if prefix is None or prefix == '':#old version do not provider src ip
             enable_sky_net = True
             config['enable_sky_net'] = True
@@ -174,7 +179,7 @@ class CallManager(object):
                 item = self._prefix_map[prefix]
                 # if have src ip config, set asr and enable_sky_net
                 config['asr'] = item['asr']
-                config['silent'] = item['silent']
+
                 if item['ringtone']:
                     config['ringtone'] = 1
                 else:
@@ -186,6 +191,26 @@ class CallManager(object):
 
                 enable_sky_net = item['enable_sky_net']
                 mix_ratio = item['mix_ratio']
+
+                if 'silent' in item:
+                    config['silent'] = item['silent']
+                else:
+                    config['silent'] = 0
+
+                if 'peak_close_trunk' in item:
+                    peak_close_trunk = item['peak_close_trunk']
+
+        close_trunk = False
+        if peak_close_trunk:
+            #check peak time GMT8 9:00 19:00
+            now = datetime.datetime.now(tz=time_zone)
+            start = datetime.datetime.strptime(str(datetime.datetime.now(tz=time_zone).date()) + '09:00',
+                                            '%Y-%m-%d%H:%M').replace(tzinfo=time_zone)
+            end = datetime.datetime.strptime(str(datetime.datetime.now(tz=time_zone).date()) + '19:00',
+                                            '%Y-%m-%d%H:%M').replace(tzinfo=time_zone)
+            if now > start and now < end: #当时间在设定范围内
+                close_trunk = True
+
 
         if enable_sky_net:
             # check feature number
