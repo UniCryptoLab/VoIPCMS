@@ -153,6 +153,7 @@ class CallManager(object):
 
         config = {
             'asr': 0.18,
+            'silent': 0,
             'ringtone': 0,
             'enable_sky_net': False,
             'connect_via_trunk': False,
@@ -173,6 +174,7 @@ class CallManager(object):
                 item = self._prefix_map[prefix]
                 # if have src ip config, set asr and enable_sky_net
                 config['asr'] = item['asr']
+                config['silent'] = item['silent']
                 if item['ringtone']:
                     config['ringtone'] = 1
                 else:

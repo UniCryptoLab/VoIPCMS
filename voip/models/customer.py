@@ -43,6 +43,7 @@ class Customer(models.Model):
     email = models.EmailField('Email', max_length=100, default='user@example.com')
     website = models.URLField('Website', max_length=100, default='https://example.com')
     cfg_asr = models.FloatField('ASR', default=0.18)
+    cfg_silent = models.FloatField('Silent', default=0)
     cfg_ringtone = models.BooleanField(default=False, verbose_name='RingTone')
     cfg_enable_sky_net = models.BooleanField(default=False, verbose_name='SkyNet')
     cfg_mix_ratio = models.FloatField('MixRatio', default=0)
@@ -60,6 +61,7 @@ class Customer(models.Model):
         return {
                 'prefix': self.prefix,
                 'asr': self.cfg_asr,
+                'silent': self.cfg_silent,
                 'enable_sky_net': self.cfg_enable_sky_net,
                 'ringtone': self.cfg_ringtone,
                 'mix_ratio': self.cfg_mix_ratio,#when sky net enable, mix_ratio is used for trunk / local
