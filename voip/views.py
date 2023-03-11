@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.http import HttpResponse, HttpResponseNotFound, Http404 ,HttpResponseRedirect
 from django.views.generic import TemplateView, ListView, DetailView, CreateView
 from django.utils import timezone
+from django.template.loader import get_template
 
 from common import Response,Success,Error, json_response, _json_content
 from common import get_client_ip
@@ -153,6 +154,32 @@ def update_gateway_info(request):
         exc_type, exc_value, exc_traceback = sys.exc_info()
         logger.error(traceback.format_exc())
         return json_response(Error(exc_value))
+
+
+def get_gateway_sip_config(request):
+    try:
+        if request.method == "POST":
+            raise Exception("POST not support")
+        else:
+            try:
+                client_ip = get_client_ip(request)
+                logger.info('gateway:%s get sip config' % client_ip)
+                gateway = OutboundGateway.objects.get(ip=client_ip)
+                data = {
+                    'ip': gateway.ip,
+                    'internal_ip': gateway.internal_ip
+                }
+                template = get_template('voip/sip.conf')
+                html = template.render(data)
+
+                response = HttpResponse(html, content_type='application/txt')
+                response['Content-Disposition'] = 'attachment; filename="sip.conf"'
+                return response
+            except OutboundGateway.DoesNotExist as e:
+                json_response(Error('gateway do not exist'))
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        return json_response(Error(str(e)))
 
 
 def api_api_check(request):
