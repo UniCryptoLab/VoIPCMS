@@ -215,33 +215,48 @@ class CallManager(object):
             fn = self.get_feature_number(number)
             #it is not feature number or feature is auto model then use default logic to handle config['connect_via_trunk']
             if fn is None or fn['call_model'] == 'Auto':
-                if is_peak and peak_close_trunk:
-                    #在高峰时间段内，并且设定为关闭trunk 则Auto类型的号码 永远不通
-                    config['connect_via_trunk'] = False
-                    config['is_480'] = True
-                else:
-                    # try call a number 3 times, we make it connect
-                    if data.try_count >= 3:
-                        connect = random.random()
-                        if connect <= 0.7:
-                            config['connect_via_trunk'] = True
-
-                    if data.try_count >= 4:
-                        connect = random.random()
-                        if connect <= 0.9:
-                            config['connect_via_trunk'] = True
-
-                    if data.try_count >= 5:
+                # try call a number 3 times, we make it connect
+                if data.try_count >= 3:
+                    connect = random.random()
+                    if connect <= 0.7:
                         config['connect_via_trunk'] = True
+                        if is_peak and peak_close_trunk:
+                            # 在高峰时间段内，并且设定为关闭trunk 则不通
+                            config['connect_via_trunk'] = False
+                            config['is_480'] = True
 
-                    # if number is connected, we make it connect
-                    if data.connect_time is not None:
+                if data.try_count >= 4:
+                    connect = random.random()
+                    if connect <= 0.9:
                         config['connect_via_trunk'] = True
+                        if is_peak and peak_close_trunk:
+                            # 在高峰时间段内，并且设定为关闭trunk 则不通
+                            config['connect_via_trunk'] = False
+                            config['is_480'] = True
 
-                    # if mix_ratio > 0 then check connect_via_trunk set true
-                    if not config['connect_via_trunk'] and mix_ratio > 0:
-                        if random.random() <= mix_ratio:
-                            config['connect_via_trunk'] = True
+                if data.try_count >= 5:
+                    config['connect_via_trunk'] = True
+                    if is_peak and peak_close_trunk:
+                        # 在高峰时间段内，并且设定为关闭trunk 则不通
+                        config['connect_via_trunk'] = False
+                        config['is_480'] = True
+
+                # if number is connected, we make it connect
+                if data.connect_time is not None:
+                    config['connect_via_trunk'] = True
+                    if is_peak and peak_close_trunk:
+                        # 在高峰时间段内，并且设定为关闭trunk 则不通
+                        config['connect_via_trunk'] = False
+                        config['is_480'] = True
+
+                # if mix_ratio > 0 then check connect_via_trunk set true
+                if not config['connect_via_trunk'] and mix_ratio > 0:
+                    if random.random() <= mix_ratio:
+                        config['connect_via_trunk'] = True
+                        if is_peak and peak_close_trunk:
+                            # 在高峰时间段内，并且设定为关闭trunk 则Auto类型的号码 永远不通
+                            config['connect_via_trunk'] = False
+                            config['is_480'] = True
 
             elif fn['call_model'] == 'Direct':
                 config['connect_via_trunk'] = True
