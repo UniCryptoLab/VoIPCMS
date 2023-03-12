@@ -9,7 +9,7 @@ import threading
 import argparse
 import pprint
 import asterisk.agi
-from asterisk.agi import *
+from asterisk.agi import AGIResultHangup, AGIAppError, AGIInvalidCommand, AGIUsageError, AGIUnknownError
 
 from six import PY3
 from dotenv import load_dotenv
@@ -30,83 +30,18 @@ logger = logging.getLogger(__name__)
 re_code = re.compile(r'(^\d*)\s*(.*)')
 re_kv = re.compile(r'(?P<key>\w+)=(?P<value>[^\s]+)\s*(?:\((?P<data>.*)\))*')
 
-
-class _ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-    """
-    Provides a variant of the TCPServer that spawns a new thread to handle each
-    request.
-    """
-
-    @staticmethod
-    def get_somaxconn():
-        """
-        Returns the value of SOMAXCONN configured in the system.
-        """
-        # determine the OS appropriate management informations base (MIB)
-        # name to determine SOMAXCONN
-        system = platform.system()
-        if "Linux" == system:
-            sysctl_mib_somaxconn = "net.core.somaxconn"
-            sysctl_output_delimiter = "="
-        elif "Darwin" == system:
-            sysctl_mib_somaxconn = "kern.ipc.somaxconn"
-            sysctl_output_delimiter = ":"
-        else:
-            raise NotImplementedError(
-                "Determining SOMAXCONN is not implemented for {} system.".format(system)
-            )
-        # run the cmd to determine the SOMAXCONN
-        cmd_result = subprocess.check_output(["sysctl", sysctl_mib_somaxconn])
-
-        # parse the output of the cmd to return the value of SOMAXCONN
-        return int(cmd_result.decode().split(sysctl_output_delimiter)[-1].strip())
-
-    def __init__(self, *args, **kwargs):
-        # adjust request queue size to a saner value for modern systems
-        # further adjustments are automatically picked up for kernel
-        # settings on server start
-        self.request_queue_size = max(socket.SOMAXCONN, self.get_somaxconn())
-        self.allow_reuse_address = True
-        super().__init__(*args, **kwargs)
-
-
-class FastAGIServer(_ThreadedTCPServer):
-    """
-    Provides a FastAGI TCP server to handle requests from Asterisk servers.
-    """
-    debug = False  # Used to enable various printouts for library development
-
-    def __init__(self, interface='127.0.0.1', port=4573, daemon_threads=True, debug=False):
-        """
-        Creates the server and binds the client-handler callable.
-
-        `interface` is the address of the interface on which to listen; defaults
-        to localhost, but may be any interface on the host or `'0.0.0.0'` for
-        all. `port` is the TCP port on which to listen.
-
-        `daemon_threads` indicates whether any threads spawned to handle
-        requests should be killed if the main thread dies. (Generally a good
-        idea to avoid hung calls keeping the process alive forever)
-        `debug` should only be turned on for library development.
-        """
-        _ThreadedTCPServer.__init__(self, (interface, port), FastAGIHandler)
-        self.debug = debug
-        self.daemon_threads = daemon_threads
-        logger.info("Init FastAGIServer at:%s" % port)
-
-
 class AGINg(asterisk.agi.AGI):
     def __init__(self, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr):
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
         self._got_sighup = False
+        #signal.signal(signal.SIGHUP, self._handle_sighup)  # handle SIGHUP
         self.stderr.write('ARGS: ')
         self.stderr.write(str(sys.argv))
         self.stderr.write('\n')
         self.env = {}
         self._get_agi_env()
-        # signal.signal(signal.SIGHUP, self._handle_sighup)  # handle SIGHUP, only used in
 
     def _get_agi_env(self):
         while 1:
@@ -150,12 +85,14 @@ class AGINg(asterisk.agi.AGI):
         m = re_code.search(line)
         if m:
             code, response = m.groups()
+            print(' code:%s response:%s' % (code, response))
             if code is None or code == '':
                 code = 200
             code = int(code)
         if code == 200:
             for key, value, data in re_kv.findall(response):
                 result[key] = (value, data)
+
                 # If user hangs up... we get 'hangup' in the data
                 if data == 'hangup':
                     raise AGIResultHangup("User hungup during execution")
@@ -201,6 +138,7 @@ class FastAGIHandler(socketserver.StreamRequestHandler):
         self._wait_timeout = int(os.getenv('WAIT_TIMEOUT', 50)) #55
 
         self._connect_target = float(os.getenv('CONNECT_ASR', 0.18)) #0.18
+        self._silent_target = float(os.getenv('CONNECT_SILENT', 0.0)) #base on the connect target
         self._pdd_normal = int(os.getenv('PDD_NORMAL', 2))
         self._pdd_range = int(os.getenv('PDD_RANGE', 2))
 
@@ -311,7 +249,7 @@ class FastAGIHandler(socketserver.StreamRequestHandler):
             error_files = self.get_value(call_config, 'error_files', [])
             agi.verbose("error_files:%s " % error_files)
 
-            if call_config is not None and self.get_value(call_config, 'is_block', False):
+            if call_config is not None and self.get_value(call_config, 'is_blocked', False):
                 # number is blocked
                 agi.verbose("number:%s is blocked % dnid")
                 agi.set_variable('TCode', 19)
@@ -326,13 +264,14 @@ class FastAGIHandler(socketserver.StreamRequestHandler):
 
                 # config
                 connect_target = self.get_value(call_config, 'asr', self._connect_target)
+                silent_target = self.get_value(call_config, 'silent', self._silent_target)
                 ring_type = self.get_value(call_config, 'ringtone', self._ring_type)
                 wait_normal = self.get_value(call_config, 'wait_normal', self._wait_normal)
                 wait_timeout = self.get_value(call_config, 'wait_timeout', self._wait_timeout)
 
-                agi.verbose('**** config asr:%s busy:%s decline:%s power_off:%s not_reach:%s ring_type:%s' % (
+                agi.verbose('**** config asr:%s busy:%s decline:%s power_off:%s not_reach:%s ring_type:%s silent:%s' % (
                     connect_target, self._not_connect_busy, self._not_connect_decline, self._not_connect_poweroff, self._not_connect_notreach,
-                    ring_type))
+                    ring_type, silent_target))
 
                 # check phone number
                 if not dnid.startswith('86'):
@@ -356,10 +295,13 @@ class FastAGIHandler(socketserver.StreamRequestHandler):
                     wait_ring = self._pdd_normal + random.random() * self._pdd_range
 
                     if connect <= connect_target:
+                        silent = random.random()
+
                         # wait seconds
                         diff = self._wait_range * random.random() - self._wait_range / 2
                         wait = wait_normal + diff
-                        agi.verbose("[CONNECT] after ring :%s seconds" % wait)
+
+                        agi.verbose("[CONNECT] after ring :%s seconds silent:%s target:%s" % (wait, silent, silent_target))
                         if ring_type == 0:
                             agi.appexec('wait', wait_ring)
                             agi.appexec('ringing')
@@ -372,15 +314,25 @@ class FastAGIHandler(socketserver.StreamRequestHandler):
                             agi.appexec('wait', wait)
                             agi.appexec('stopplaytones')
 
-                        # select file with random
-                        files_target = self.get_ivr_file(error_files)
-                        agi.verbose("files target:%s" % files_target)
-                        agi.appexec('answer')
-                        agi.appexec('wait', 2)
-                        self.on_call_connect(prefix, dnid, files_target)
-                        agi.appexec('playback', '/opt/asterisk/sound/%s' % files_target)
-                        agi.appexec('wait', 3)
-                        agi.set_variable('TCode', 16)
+
+                        if silent <= silent_target:
+                            #output silent
+                            agi.appexec('answer')
+                            agi.appexec('wait', 2)
+                            self.on_call_connect(prefix, dnid, 'silent')
+                            agi.appexec('playback', '/opt/asterisk/sound_system/silent_%d' % round(random.random()*6, 0))
+                            agi.appexec('wait', 3)
+                            agi.set_variable('TCode', 16)
+                        else:
+                            # select sound file
+                            files_target = self.get_ivr_file(error_files)
+                            agi.verbose("files target:%s" % files_target)
+                            agi.appexec('answer')
+                            agi.appexec('wait', 2)
+                            self.on_call_connect(prefix, dnid, files_target)
+                            agi.appexec('playback', '/opt/asterisk/sound/%s' % files_target)
+                            agi.appexec('wait', 3)
+                            agi.set_variable('TCode', 16)
 
                     else:
                         # not connect, ring time out / decline / poweroff / noreach
@@ -473,6 +425,69 @@ class FastAGIHandler(socketserver.StreamRequestHandler):
             traceback.print_tb(exc_traceback_obj)
             sys.stderr.write('An unknown error: {}\n'.format(str(e)))
 
+
+class _ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    """
+    Provides a variant of the TCPServer that spawns a new thread to handle each
+    request.
+    """
+
+    @staticmethod
+    def get_somaxconn():
+        """
+        Returns the value of SOMAXCONN configured in the system.
+        """
+        # determine the OS appropriate management informations base (MIB)
+        # name to determine SOMAXCONN
+        system = platform.system()
+        if "Linux" == system:
+            sysctl_mib_somaxconn = "net.core.somaxconn"
+            sysctl_output_delimiter = "="
+        elif "Darwin" == system:
+            sysctl_mib_somaxconn = "kern.ipc.somaxconn"
+            sysctl_output_delimiter = ":"
+        else:
+            raise NotImplementedError(
+                "Determining SOMAXCONN is not implemented for {} system.".format(system)
+            )
+        # run the cmd to determine the SOMAXCONN
+        cmd_result = subprocess.check_output(["sysctl", sysctl_mib_somaxconn])
+
+        # parse the output of the cmd to return the value of SOMAXCONN
+        return int(cmd_result.decode().split(sysctl_output_delimiter)[-1].strip())
+
+    def __init__(self, *args, **kwargs):
+        # adjust request queue size to a saner value for modern systems
+        # further adjustments are automatically picked up for kernel
+        # settings on server start
+        self.request_queue_size = max(socket.SOMAXCONN, self.get_somaxconn())
+        self.allow_reuse_address = True
+        super().__init__(*args, **kwargs)
+
+
+class FastAGIServer(_ThreadedTCPServer):
+    """
+    Provides a FastAGI TCP server to handle requests from Asterisk servers.
+    """
+    debug = False  # Used to enable various printouts for library development
+
+    def __init__(self, interface='127.0.0.1', port=4573, daemon_threads=True, debug=False):
+        """
+        Creates the server and binds the client-handler callable.
+
+        `interface` is the address of the interface on which to listen; defaults
+        to localhost, but may be any interface on the host or `'0.0.0.0'` for
+        all. `port` is the TCP port on which to listen.
+
+        `daemon_threads` indicates whether any threads spawned to handle
+        requests should be killed if the main thread dies. (Generally a good
+        idea to avoid hung calls keeping the process alive forever)
+        `debug` should only be turned on for library development.
+        """
+        _ThreadedTCPServer.__init__(self, (interface, port), FastAGIHandler)
+        self.debug = debug
+        self.daemon_threads = daemon_threads
+        logger.info("Init FastAGIServer at:%s" % port)
 
 
 if __name__ == "__main__":
