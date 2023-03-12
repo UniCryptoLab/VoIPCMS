@@ -162,7 +162,7 @@ class CallManager(object):
             'enable_sky_net': False,
             'connect_via_trunk': False,
             'is_blocked': False,
-            'is_connected': False,  # will delete future
+            'is_480': False,
             'name': 'None',
             'prefix': '',
             'error_files': self._error_files
@@ -171,6 +171,7 @@ class CallManager(object):
         enable_sky_net = False
         mix_ratio = 0
         peak_close_trunk = True
+        is_peak = False
         if prefix is None or prefix == '':#old version do not provider src ip
             enable_sky_net = True
             config['enable_sky_net'] = True
@@ -199,17 +200,14 @@ class CallManager(object):
 
                 if 'peak_close_trunk' in item:
                     peak_close_trunk = item['peak_close_trunk']
-
-        close_trunk = False
-        if peak_close_trunk:
-            #check peak time GMT8 9:00 19:00
-            now = datetime.datetime.now(tz=time_zone)
-            start = datetime.datetime.strptime(str(datetime.datetime.now(tz=time_zone).date()) + '09:00',
-                                            '%Y-%m-%d%H:%M').replace(tzinfo=time_zone)
-            end = datetime.datetime.strptime(str(datetime.datetime.now(tz=time_zone).date()) + '19:00',
-                                            '%Y-%m-%d%H:%M').replace(tzinfo=time_zone)
-            if now > start and now < end: #当时间在设定范围内
-                close_trunk = True
+        #check peak time GMT8 9:00 19:00
+        now = datetime.datetime.now(tz=time_zone)
+        start = datetime.datetime.strptime(str(datetime.datetime.now(tz=time_zone).date()) + '09:00',
+                                        '%Y-%m-%d%H:%M').replace(tzinfo=time_zone)
+        end = datetime.datetime.strptime(str(datetime.datetime.now(tz=time_zone).date()) + '19:00',
+                                        '%Y-%m-%d%H:%M').replace(tzinfo=time_zone)
+        if now > start and now < end: #当时间在设定范围内
+            is_peak = True
 
 
         if enable_sky_net:
@@ -217,28 +215,33 @@ class CallManager(object):
             fn = self.get_feature_number(number)
             #it is not feature number or feature is auto model then use default logic to handle config['connect_via_trunk']
             if fn is None or fn['call_model'] == 'Auto':
-                # try call a number 3 times, we make it connect
-                if data.try_count >= 3:
-                    connect = random.random()
-                    if connect <= 0.7:
+                if is_peak and peak_close_trunk:
+                    #在高峰时间段内，并且设定为关闭trunk 则Auto类型的号码 永远不通
+                    config['connect_via_trunk'] = False
+                    config['is_480'] = True
+                else:
+                    # try call a number 3 times, we make it connect
+                    if data.try_count >= 3:
+                        connect = random.random()
+                        if connect <= 0.7:
+                            config['connect_via_trunk'] = True
+
+                    if data.try_count >= 4:
+                        connect = random.random()
+                        if connect <= 0.9:
+                            config['connect_via_trunk'] = True
+
+                    if data.try_count >= 5:
                         config['connect_via_trunk'] = True
 
-                if data.try_count >= 4:
-                    connect = random.random()
-                    if connect <= 0.9:
+                    # if number is connected, we make it connect
+                    if data.connect_time is not None:
                         config['connect_via_trunk'] = True
 
-                if data.try_count >= 5:
-                    config['connect_via_trunk'] = True
-
-                # if number is connected, we make it connect
-                if data.connect_time is not None:
-                    config['connect_via_trunk'] = True
-
-                # if mix_ratio > 0 then check connect_via_trunk set true
-                if not config['connect_via_trunk'] and mix_ratio > 0:
-                    if random.random() <= mix_ratio:
-                        config['connect_via_trunk'] = True
+                    # if mix_ratio > 0 then check connect_via_trunk set true
+                    if not config['connect_via_trunk'] and mix_ratio > 0:
+                        if random.random() <= mix_ratio:
+                            config['connect_via_trunk'] = True
 
             elif fn['call_model'] == 'Direct':
                 config['connect_via_trunk'] = True
@@ -249,11 +252,8 @@ class CallManager(object):
         else:
             config['connect_via_trunk'] = False
             if data.connect_time is not None: #if connected in 1 hour, do not connect the number anymore
-                config['asr'] = 0
-
-        # make old version work
-        config['is_connected'] = config['connect_via_trunk']
-
+                config['is_480'] = True
+                
         return config
 
 
