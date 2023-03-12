@@ -32,7 +32,7 @@ class CustomerAdmin(admin.ModelAdmin):
         }),
         ("Config", {
             "fields": [
-                "cfg_asr", "cfg_silent", "cfg_ringtone", "cfg_enable_sky_net", "cfg_mix_ratio"
+                "cfg_asr", "cfg_silent", "cfg_ringtone", "cfg_peak_close_trunk", "cfg_enable_sky_net", "cfg_mix_ratio"
             ]
         }),
         ("Biz", {
