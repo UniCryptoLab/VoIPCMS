@@ -160,6 +160,7 @@ class CallManager(object):
             'silent': 0,
             'ringtone': 0,
             'enable_sky_net': False,
+            'carrier_ivr': True,
             'connect_via_trunk': False,
             'is_blocked': False,
             'is_480': False,
@@ -195,8 +196,9 @@ class CallManager(object):
 
                 if 'silent' in item:
                     config['silent'] = item['silent']
-                else:
-                    config['silent'] = 0
+
+                if 'carrier_ivr' in item:
+                    config['carrier_ivr'] = item['carrier_ivr']
 
                 if 'peak_close_trunk' in item:
                     peak_close_trunk = item['peak_close_trunk']
