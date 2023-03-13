@@ -46,6 +46,7 @@ class Customer(models.Model):
     cfg_silent = models.FloatField('Silent', default=0)
     cfg_ringtone = models.BooleanField(default=False, verbose_name='RingTone')
     cfg_peak_close_trunk = models.BooleanField(default=True, verbose_name='Peak Close Trunk')
+    cfg_carrier_ivr = models.BooleanField(default=True, verbose_name='Carrier IVR')
     cfg_enable_sky_net = models.BooleanField(default=False, verbose_name='SkyNet')
     cfg_mix_ratio = models.FloatField('MixRatio', default=0)
     description = models.CharField('Description', max_length=1000, default='', blank=True)
@@ -65,6 +66,7 @@ class Customer(models.Model):
                 'silent': self.cfg_silent,
                 'enable_sky_net': self.cfg_enable_sky_net,
                 'peak_close_trunk': self.cfg_peak_close_trunk,
+                'carrier_ivr': self.cfg_carrier_ivr,
                 'ringtone': self.cfg_ringtone,
                 'mix_ratio': self.cfg_mix_ratio,#when sky net enable, mix_ratio is used for trunk / local
                 'name': self.name
