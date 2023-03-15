@@ -203,7 +203,7 @@ class CallManager(object):
                 if 'peak_close_trunk' in item:
                     peak_close_trunk = item['peak_close_trunk']
         #check peak time GMT8 9:00 19:00
-        now = datetime.datetime.now(tz=time_zone)
+        now = datetime.datetime.now(tz=time_zone).replace(tzinfo=time_zone)
         start = datetime.datetime.strptime(str(datetime.datetime.now(tz=time_zone).date()) + '09:00',
                                         '%Y-%m-%d%H:%M').replace(tzinfo=time_zone)
         end = datetime.datetime.strptime(str(datetime.datetime.now(tz=time_zone).date()) + '19:00',
@@ -211,6 +211,7 @@ class CallManager(object):
         if now > start and now < end: #当时间在设定范围内
             is_peak = True
 
+        logger.info('peak_close_trunk:%s is peak:%s config:%s' % (peak_close_trunk, is_peak, config))
 
         if enable_sky_net:
             # check feature number

@@ -3,6 +3,7 @@
 
 import os, time
 import subprocess
+import argparse
 from flask import Flask, jsonify, request
 
 from call_manager import CallManager
@@ -92,4 +93,7 @@ def get_call_detail():
 
 
 if __name__ == '__main__':
-    app.run('0.0.0.0', 8080, debug=False)
+    argp = argparse.ArgumentParser()
+    argp.add_argument('-p', '--port', default=8080, help='bind port')
+    args = argp.parse_args()
+    app.run('0.0.0.0', args.port, debug=False)
